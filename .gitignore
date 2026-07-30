@@ -1,5 +1,0 @@
-# Node / Mobile dependencies
-node_modules/
-.env
-build/
-.dart_tool/
