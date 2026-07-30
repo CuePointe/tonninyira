@@ -7,7 +7,6 @@ Hyper-local, low-margin e-commerce and delivery ecosystem designed for budget sh
 - **Zone-Based Logistics:** Ultra-cheap hyper-local delivery + batched regional delivery.
 - **Micro-Commissions:** Scalable revenue model via vendor and dispatch cuts without price markups.
 
-
 tonninyira-online-app/
 │
 ├── docs/                      # Architecture, API specs & business blueprints
