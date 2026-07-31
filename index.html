@@ -3,445 +3,625 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tonninyira - Cheap Market Orders & Fast Food</title>
-  
-  <!-- Tailwind CSS CDN -->
+  <title>Tonninyira - Order Food & Market Items</title>
   <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-  
-  <!-- Supabase Auth & Realtime -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="bg-gray-50 text-gray-900 font-sans">
-  
-  <!-- Mobile Frame Container -->
-  <div class="mobile-frame">
-    
-    <!-- HEADER -->
-    <header class="bg-gradient-to-r from-orange-500 to-red-500 text-white sticky top-0 z-40 shadow-lg">
-      <div class="p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h1 class="text-xl font-bold tracking-tight">Tonninyira</h1>
-          <div class="flex items-center gap-2">
-            <button id="userMenuBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded-lg text-sm font-medium transition-all">
-              👤
-            </button>
-            <button id="cartBtn" class="relative bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-lg transition-all">
-              <span class="text-2xl">🛒</span>
-              <span id="cartCount" class="absolute -top-2 -right-2 bg-yellow-300 text-red-600 font-bold text-xs w-6 h-6 flex items-center justify-center rounded-full">0</span>
-            </button>
-          </div>
-        </div>
-        <p class="text-sm text-orange-100 font-medium">Cheap Market Orders & Fast Food at Your Door</p>
-      </div>
+  <style>
+    :root {
+      --primary-red: #DC2626;
+      --primary-yellow: #FBBF24;
+      --dark-red: #991B1B;
+      --light-yellow: #FEF3C7;
+    }
 
-      <!-- Area Selector -->
-      <div class="bg-black bg-opacity-10 px-4 py-3">
-        <label class="text-xs font-semibold text-orange-100 block mb-2">📍 Delivery Area:</label>
-        <select id="areaSelect" class="w-full px-3 py-2 rounded-md text-sm font-medium text-gray-900 bg-white border-0 focus:ring-2 focus:ring-yellow-300">
-          <option value="kisugu">Kisugu - UGX 1,000 fee</option>
-          <option value="kansanga">Kansanga - UGX 1,000 fee</option>
-          <option value="ggaba">Ggaba - UGX 1,500 fee</option>
-          <option value="namwongo">Namwongo - UGX 1,000 fee</option>
-          <option value="entebbe">Entebbe - UGX 3,000 fee</option>
-          <option value="kasangati">Kasangati - UGX 3,000 fee</option>
-          <option value="jinja">Jinja - UGX 5,000 fee</option>
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #FEF3C7 0%, #FFFFFF 100%);
+    }
+
+    .header-red {
+      background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
+    }
+
+    .btn-red {
+      background: var(--primary-red);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .btn-red:hover {
+      background: var(--dark-red);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-yellow {
+      background: var(--primary-yellow);
+      color: var(--dark-red);
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-yellow:hover {
+      background: #F59E0B;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(251, 191, 36, 0.4);
+    }
+
+    .product-card {
+      border: 3px solid transparent;
+      background: white;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      border-color: var(--primary-red);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(220, 38, 38, 0.2);
+    }
+
+    .icon-large {
+      font-size: 4rem;
+      line-height: 1;
+    }
+
+    .cart-badge {
+      background: var(--primary-red);
+      color: white;
+      border-radius: 50%;
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+
+    .floating-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 40;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      font-size: 2.5rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .zone-tab {
+      padding: 12px 20px;
+      font-size: 1.125rem;
+      font-weight: 700;
+      border: 3px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .zone-tab.active {
+      background: var(--primary-red);
+      color: white;
+      border-color: var(--primary-red);
+    }
+
+    .zone-tab:not(.active) {
+      background: white;
+      color: var(--primary-red);
+      border-color: var(--primary-yellow);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+    }
+
+    .modal-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .cart-item-card {
+      background: white;
+      border-left: 4px solid var(--primary-red);
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quantity-btn {
+      background: var(--light-yellow);
+      border: 2px solid var(--primary-red);
+      color: var(--primary-red);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .quantity-btn:hover {
+      background: var(--primary-red);
+      color: white;
+    }
+
+    .area-select {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid var(--primary-yellow);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-red);
+      background: white;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #9CA3AF;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header-red text-white sticky top-0 z-40 shadow-2xl">
+    <div class="px-4 py-4">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-3xl font-black">🍗 TONNINYIRA</h1>
+        <button id="cartBtn" class="relative bg-white bg-opacity-20 px-3 py-2 rounded-lg">
+          🛒
+          <span id="cartCount" class="cart-badge absolute -top-2 -right-2">0</span>
+        </button>
+      </div>
+      <p class="text-base font-bold text-yellow-200 mb-4">📦 Food & Market Stuff Fast!</p>
+      <div>
+        <label class="text-sm font-bold text-yellow-200 block mb-2">📍 Where Are You?</label>
+        <select id="areaSelect" class="area-select">
+          <option value="kisugu">Kisugu - 1,000 UGX</option>
+          <option value="kansanga">Kansanga - 1,000 UGX</option>
+          <option value="ggaba">Ggaba - 1,500 UGX</option>
+          <option value="namwongo">Namwongo - 1,000 UGX</option>
+          <option value="entebbe">Entebbe - 3,000 UGX</option>
+          <option value="kasangati">Kasangati - 3,000 UGX</option>
+          <option value="jinja">Jinja - 5,000 UGX</option>
         </select>
       </div>
-    </header>
-
-    <!-- MARKET ZONE TABS -->
-    <div class="sticky top-24 z-30 bg-white border-b border-gray-200 shadow-sm">
-      <div class="flex gap-2 px-4 py-2 overflow-x-auto">
-        <button class="zone-tab active px-4 py-2 text-sm font-semibold whitespace-nowrap border-b-2 border-orange-500 text-orange-600 transition-all" data-zone="local">
-          🏪 Local Markets
-        </button>
-        <button class="zone-tab px-4 py-2 text-sm font-semibold whitespace-nowrap border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-all" data-zone="fastfood">
-          🍗 Fast Foods
-        </button>
-        <button class="zone-tab px-4 py-2 text-sm font-semibold whitespace-nowrap border-b-2 border-transparent text-gray-600 hover:text-gray-900 transition-all" data-zone="central">
-          🏬 Central Hubs
-        </button>
-      </div>
     </div>
+  </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="pb-24">
-      
-      <!-- LOCAL MARKETS ZONE -->
-      <section id="localZone" class="zone-content active p-4">
-        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <span class="text-2xl">🏪</span> Local Market Runs (1-3km)
-        </h2>
-        <div id="localGrid" class="grid grid-cols-2 gap-3">
-          <!-- Products loaded by JS -->
-        </div>
-      </section>
-
-      <!-- FAST FOODS ZONE -->
-      <section id="fastfoodZone" class="zone-content hidden p-4">
-        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <span class="text-2xl">🍗</span> Affordable Fast Foods (Ready to Eat)
-        </h2>
-        <div id="fastfoodGrid" class="grid grid-cols-2 gap-3">
-          <!-- Products loaded by JS -->
-        </div>
-      </section>
-
-      <!-- CENTRAL HUBS ZONE -->
-      <section id="centralZone" class="zone-content hidden p-4">
-        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <span class="text-2xl">🏬</span> Central Hubs (Owino & Bulk)
-        </h2>
-        <div id="centralGrid" class="grid grid-cols-2 gap-3">
-          <!-- Products loaded by JS -->
-        </div>
-      </section>
-
-    </main>
-
-    <!-- FLOATING CART BUTTON (Mobile) -->
-    <div id="floatingCart" class="floating-cart hidden fixed bottom-6 right-4 z-50">
-      <button id="floatingCartBtn" class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full font-bold shadow-2xl hover:shadow-lg transition-all flex items-center gap-2">
-        <span>🛒</span>
-        <span id="floatingTotal">UGX 0</span>
-      </button>
+  <!-- ZONE TABS -->
+  <div class="sticky top-24 z-30 bg-white shadow-md px-4 py-4 border-b-4 border-yellow-300">
+    <div class="flex gap-2 overflow-x-auto pb-2">
+      <button class="zone-tab active" data-zone="meals">🍽️ MEALS</button>
+      <button class="zone-tab" data-zone="snacks">🍔 SNACKS</button>
+      <button class="zone-tab" data-zone="stuff">🛍️ STUFF</button>
     </div>
-
-    <!-- SLIDE-OVER CART PANEL -->
-    <div id="cartPanel" class="cart-panel fixed inset-0 z-50 hidden">
-      <div class="cart-panel-overlay"></div>
-      <div class="cart-panel-content bg-white h-full w-full max-w-md ml-auto flex flex-col shadow-2xl animate-slideInRight">
-        
-        <!-- Cart Header -->
-        <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 flex items-center justify-between">
-          <h3 class="text-xl font-bold">Your Basket</h3>
-          <button id="closeCartBtn" class="text-2xl font-bold hover:opacity-80 transition-all">✕</button>
-        </div>
-
-        <!-- Cart Items Scroll -->
-        <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3">
-          <p class="text-center text-gray-500 py-8">Your basket is empty</p>
-        </div>
-
-        <!-- Delivery Option Selector -->
-        <div class="border-t border-gray-200 p-4 space-y-3">
-          <h4 class="font-semibold text-gray-900 flex items-center gap-2">
-            <span>🚴</span> Delivery Option
-          </h4>
-          <div class="space-y-2">
-            <label class="flex items-center gap-3 p-2 rounded-lg border-2 border-orange-300 cursor-pointer hover:bg-orange-50 transition-all delivery-option-label" data-option="standard">
-              <input type="radio" name="deliveryOption" value="standard" checked class="w-5 h-5 text-orange-500 cursor-pointer">
-              <div>
-                <p class="font-semibold text-sm text-gray-900">Standard (Area Default)</p>
-                <p class="text-xs text-gray-500" id="standardFeeDisplay">UGX 1,000</p>
-              </div>
-            </label>
-            <label class="flex items-center gap-3 p-2 rounded-lg border-2 border-gray-200 cursor-pointer hover:bg-gray-50 transition-all delivery-option-label" data-option="express">
-              <input type="radio" name="deliveryOption" value="express" class="w-5 h-5 text-orange-500 cursor-pointer">
-              <div>
-                <p class="font-semibold text-sm text-gray-900">Express (+UGX 2,000)</p>
-                <p class="text-xs text-gray-500">~30 min delivery</p>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Savings Calculator -->
-        <div class="border-t border-gray-200 p-4 bg-green-50 rounded-lg">
-          <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <span>💰</span> Your Savings
-          </h4>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-700">Items Cost:</span>
-              <span id="savingsItems" class="font-semibold text-gray-900">UGX 0</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-700">Delivery Fee:</span>
-              <span id="savingsDelivery" class="font-semibold text-gray-900">UGX 0</span>
-            </div>
-            <div class="border-t border-green-200 pt-2 flex justify-between">
-              <span class="text-gray-700 font-semibold">Tonninyira Total:</span>
-              <span id="savingsTonninyira" class="font-bold text-lg text-green-700">UGX 0</span>
-            </div>
-            <div class="bg-yellow-50 p-2 rounded mt-2 border-l-4 border-yellow-400">
-              <p class="text-xs text-gray-600"><strong class="text-yellow-700">Physical Trip Cost:</strong></p>
-              <p id="physicalTripCost" class="font-bold text-sm text-yellow-700">UGX 0</p>
-              <p class="text-xs text-gray-600 mt-1">(Items + Round-trip Taxi)</p>
-            </div>
-            <div class="bg-green-100 p-2 rounded mt-2 border-l-4 border-green-600">
-              <p class="text-xs text-gray-600"><strong class="text-green-700">Net Savings:</strong></p>
-              <p id="netSavings" class="font-bold text-lg text-green-700">UGX 0</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Checkout Section -->
-        <div class="border-t border-gray-200 p-4 space-y-3">
-          <button id="revenueModalBtn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition-all text-sm flex items-center justify-center gap-2">
-            <span>📊</span> How Tonninyira Earns
-          </button>
-          <button id="checkoutBtn" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg text-lg">
-            Proceed to Payment 💳
-          </button>
-          <button id="continueShoppingBtn" class="w-full bg-white border-2 border-gray-200 hover:border-orange-300 text-gray-700 font-semibold py-2 rounded-lg transition-all">
-            Continue Shopping
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRODUCT CARD TEMPLATE (Hidden) -->
-    <template id="productTemplate">
-      <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all border border-gray-100">
-        <div class="bg-gradient-to-br from-orange-100 to-red-100 h-32 flex items-center justify-center text-5xl">
-          <!-- Icon loaded by JS -->
-        </div>
-        <div class="p-3">
-          <h3 class="font-bold text-sm text-gray-900 line-clamp-2"></h3>
-          <p class="text-xs text-gray-500 mt-1"></p>
-          <p class="font-bold text-lg text-orange-600 mt-2">UGX 0</p>
-          <button class="add-to-cart w-full mt-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-2 rounded-lg transition-all text-sm">
-            Add to Basket
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <!-- REVENUE VISUALIZER MODAL -->
-    <div id="revenueModal" class="modal fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
-        
-        <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-4 flex items-center justify-between rounded-t-xl">
-          <h3 class="text-lg font-bold flex items-center gap-2">
-            <span>📊</span> Platform Economics
-          </h3>
-          <button class="modal-close text-2xl font-bold hover:opacity-80 transition-all">✕</button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-5 space-y-4">
-          
-          <!-- Cart Summary -->
-          <div class="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
-            <p class="text-xs font-semibold text-blue-700 mb-2">CURRENT ORDER BREAKDOWN</p>
-            <div class="space-y-1 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-700">Items Subtotal:</span>
-                <span class="font-bold text-gray-900" id="modalSubtotal">UGX 0</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-700">Delivery Fee:</span>
-                <span class="font-bold text-gray-900" id="modalDeliveryFee">UGX 0</span>
-              </div>
-              <div class="flex justify-between border-t border-blue-200 pt-1 mt-1">
-                <span class="font-semibold text-gray-900">Order Total:</span>
-                <span class="font-bold text-lg text-blue-700" id="modalOrderTotal">UGX 0</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tonninyira Revenue -->
-          <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
-            <p class="text-xs font-semibold text-purple-700 mb-2">HOW TONNINYIRA EARNS (3% + Delivery %)</p>
-            <div class="space-y-2 text-sm">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-gray-700">Vendor Commission (3%):</span>
-                  <span class="font-bold text-purple-700" id="modalVendorCommission">UGX 0</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div class="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full" id="vendorCommissionBar" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-gray-700">Delivery Platform Cut (15%):</span>
-                  <span class="font-bold text-purple-700" id="modalDeliveryCommission">UGX 0</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 h-2 rounded-full" id="deliveryCommissionBar" style="width: 0%"></div>
-                </div>
-              </div>
-
-              <div class="border-t border-purple-200 pt-2 mt-2">
-                <div class="flex justify-between">
-                  <span class="font-semibold text-gray-900">Tonninyira Platform Margin:</span>
-                  <span class="font-bold text-lg text-purple-700" id="modalTotalMargin">UGX 0</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Profit Margin % -->
-          <div class="bg-indigo-50 p-3 rounded-lg">
-            <p class="text-xs font-semibold text-indigo-700 mb-2">MARGIN EFFICIENCY</p>
-            <div class="flex items-baseline gap-2">
-              <span class="text-3xl font-bold text-indigo-600" id="modalMarginPercent">0%</span>
-              <span class="text-sm text-gray-600">of order total</span>
-            </div>
-            <p class="text-xs text-gray-600 mt-2">💡 <strong>Lean margin model</strong> keeps prices low for customers while sustaining operations.</p>
-          </div>
-
-          <!-- Info Box -->
-          <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <p class="text-xs text-gray-600">
-              <strong class="text-gray-900">Why low margins?</strong> Tonninyira's model focuses on high volume (10,000+ micro-orders/month) with minimal overhead. Revenue sustainability comes from scale, not markup.
-            </p>
-          </div>
-
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="border-t border-gray-200 p-4 flex gap-2">
-          <button class="modal-close flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition-all">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAYMENT METHOD MODAL -->
-    <div id="paymentModal" class="modal fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
-        
-        <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-green-500 to-teal-600 text-white p-4 flex items-center justify-between rounded-t-xl">
-          <h3 class="text-lg font-bold flex items-center gap-2">
-            <span>💳</span> Payment Method
-          </h3>
-          <button class="modal-close text-2xl font-bold hover:opacity-80 transition-all">✕</button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-5 space-y-3">
-          
-          <button class="payment-option w-full p-4 rounded-lg border-2 border-green-300 hover:bg-green-50 transition-all text-left group" data-method="mtn">
-            <div class="flex items-center gap-3">
-              <div class="text-4xl">📱</div>
-              <div class="flex-1">
-                <p class="font-bold text-gray-900 group-hover:text-green-700">MTN MoMo</p>
-                <p class="text-xs text-gray-500">Pay via MTN Mobile Money</p>
-              </div>
-              <span class="text-2xl">→</span>
-            </div>
-          </button>
-
-          <button class="payment-option w-full p-4 rounded-lg border-2 border-red-300 hover:bg-red-50 transition-all text-left group" data-method="airtel">
-            <div class="flex items-center gap-3">
-              <div class="text-4xl">📲</div>
-              <div class="flex-1">
-                <p class="font-bold text-gray-900 group-hover:text-red-700">Airtel Money</p>
-                <p class="text-xs text-gray-500">Pay via Airtel Money</p>
-              </div>
-              <span class="text-2xl">→</span>
-            </div>
-          </button>
-
-          <button class="payment-option w-full p-4 rounded-lg border-2 border-yellow-300 hover:bg-yellow-50 transition-all text-left group" data-method="cash">
-            <div class="flex items-center gap-3">
-              <div class="text-4xl">💵</div>
-              <div class="flex-1">
-                <p class="font-bold text-gray-900 group-hover:text-yellow-700">Cash on Delivery</p>
-                <p class="text-xs text-gray-500">Pay driver when order arrives</p>
-              </div>
-              <span class="text-2xl">→</span>
-            </div>
-          </button>
-
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="border-t border-gray-200 p-4 flex gap-2">
-          <button class="modal-close flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition-all">
-            Back
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ORDER CONFIRMATION MODAL -->
-    <div id="confirmationModal" class="modal fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
-        
-        <div class="bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-t-xl text-center">
-          <div class="text-6xl mb-3 animate-bounce">✅</div>
-          <h3 class="text-2xl font-bold">Order Placed!</h3>
-        </div>
-
-        <div class="p-6 space-y-4 text-center">
-          <div class="bg-green-50 p-4 rounded-lg">
-            <p class="text-sm text-gray-600 mb-1">Order ID:</p>
-            <p class="text-2xl font-bold text-green-700" id="confirmationOrderId">#TN-000000</p>
-          </div>
-
-          <div class="space-y-2 text-left bg-gray-50 p-4 rounded-lg">
-            <p class="text-sm font-semibold text-gray-700">Order Summary:</p>
-            <div id="confirmationSummary" class="text-sm text-gray-600 space-y-1">
-              <!-- Loaded by JS -->
-            </div>
-          </div>
-
-          <div class="bg-blue-50 p-4 rounded-lg text-left">
-            <p class="text-sm font-semibold text-blue-700 mb-2">📍 Delivery Status</p>
-            <p class="text-xs text-gray-600">Your order will arrive within <strong>30-60 minutes</strong>. Track your delivery in the app.</p>
-          </div>
-        </div>
-
-        <div class="border-t border-gray-200 p-4">
-          <button id="confirmationCloseBtn" class="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 rounded-lg transition-all">
-            Back to Shopping
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOGIN MODAL -->
-    <div id="loginModal" class="modal fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full animate-fadeIn">
-        
-        <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-t-xl">
-          <h3 class="text-lg font-bold">Login to Tonninyira</h3>
-        </div>
-
-        <div class="p-5 space-y-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-            <input type="tel" id="loginPhone" placeholder="+256 700 000000" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-            <input type="email" id="loginEmail" placeholder="your@email.com" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
-          </div>
-
-          <button id="loginSubmitBtn" class="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-lg transition-all">
-            Sign In / Create Account
-          </button>
-
-          <div class="flex items-center gap-2 mt-4">
-            <input type="checkbox" id="agreeTerms" class="w-4 h-4">
-            <label for="agreeTerms" class="text-xs text-gray-600">I agree to Tonninyira Terms & Privacy Policy</label>
-          </div>
-        </div>
-
-        <div class="border-t border-gray-200 p-4">
-          <button class="modal-close w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition-all">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- JavaScript -->
-  <script src="app.js"></script>
+  <!-- MAIN CONTENT -->
+  <main class="pb-32 px-4">
+    <section id="mealsZone" class="zone-content active py-4">
+      <h2 class="text-2xl font-black text-red-700 mb-4">🍲 READY TO EAT</h2>
+      <div id="mealsGrid" class="grid grid-cols-2 gap-4"></div>
+    </section>
+
+    <section id="snacksZone" class="zone-content hidden py-4">
+      <h2 class="text-2xl font-black text-red-700 mb-4">🍩 QUICK BITES</h2>
+      <div id="snacksGrid" class="grid grid-cols-2 gap-4"></div>
+    </section>
+
+    <section id="stuffZone" class="zone-content hidden py-4">
+      <h2 class="text-2xl font-black text-red-700 mb-4">🛒 SHOP THINGS</h2>
+      <div id="stuffGrid" class="grid grid-cols-2 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- FLOATING CART BUTTON -->
+  <button id="floatingCartBtn" class="floating-btn btn-red hidden">🛒</button>
+
+  <!-- CART PANEL -->
+  <div id="cartOverlay" class="overlay hidden"></div>
+  <div id="cartPanel" class="modal-panel hidden">
+    <div class="header-red text-white p-6 flex justify-between items-center">
+      <h2 class="text-2xl font-black">🛒 YOUR BASKET</h2>
+      <button id="closeCartBtn" class="text-4xl font-black">✕</button>
+    </div>
+
+    <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div class="empty-state">
+        <div class="text-5xl mb-2">🛒</div>
+        <p class="text-lg font-bold">Empty basket</p>
+      </div>
+    </div>
+
+    <div class="border-t-4 border-yellow-300 p-6 space-y-4">
+      <h3 class="text-lg font-black text-red-700">⚡ SPEED</h3>
+      <label class="flex items-center gap-3 p-3 border-2 border-orange-300 rounded-lg cursor-pointer bg-yellow-50">
+        <input type="radio" name="deliveryOption" value="standard" checked onchange="updateDelivery()">
+        <div>
+          <p class="font-black text-gray-900">Normal - 30-45 min</p>
+          <p id="standardFeeDisplay" class="text-sm font-bold text-red-600">+1,000 UGX</p>
+        </div>
+      </label>
+      <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
+        <input type="radio" name="deliveryOption" value="express" onchange="updateDelivery()">
+        <div>
+          <p class="font-black text-gray-900">FAST - 15-20 min</p>
+          <p class="text-sm font-bold text-red-600">+3,000 UGX</p>
+        </div>
+      </label>
+    </div>
+
+    <div class="border-t-4 border-yellow-300 p-6 bg-yellow-50">
+      <h3 class="text-lg font-black text-red-700 mb-4">📊 TOTAL</h3>
+      <div class="space-y-3">
+        <div class="flex justify-between font-black">
+          <span>Items:</span>
+          <span id="summaryItems">UGX 0</span>
+        </div>
+        <div class="flex justify-between font-black">
+          <span>Delivery:</span>
+          <span id="summaryDelivery">UGX 0</span>
+        </div>
+        <div class="flex justify-between font-black text-lg border-t-4 border-b-4 border-yellow-300 py-3 text-red-700">
+          <span>YOU PAY:</span>
+          <span id="summaryTotal">UGX 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t-4 border-yellow-300 p-6 space-y-3">
+      <button id="checkoutBtn" class="btn-red w-full py-4 rounded-xl text-2xl font-black">✅ PAY NOW</button>
+      <button id="continueShoppingBtn" class="btn-yellow w-full py-3 rounded-xl text-lg font-black">← KEEP SHOPPING</button>
+    </div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div id="paymentOverlay" class="overlay hidden"></div>
+  <div id="paymentModal" class="modal-panel hidden">
+    <div class="header-red text-white p-6">
+      <h2 class="text-2xl font-black">💳 HOW TO PAY</h2>
+    </div>
+    <div class="flex-1 p-6 space-y-4 overflow-y-auto">
+      <button class="payment-option w-full" data-method="mtn">
+        <div class="p-6 bg-yellow-50 rounded-xl border-4 border-yellow-300 text-center">
+          <div class="text-4xl mb-2">📱</div>
+          <p class="font-black text-lg text-gray-900">MTN MoMo</p>
+        </div>
+      </button>
+      <button class="payment-option w-full" data-method="airtel">
+        <div class="p-6 bg-red-50 rounded-xl border-4 border-red-300 text-center">
+          <div class="text-4xl mb-2">📱</div>
+          <p class="font-black text-lg text-gray-900">Airtel Money</p>
+        </div>
+      </button>
+      <button class="payment-option w-full" data-method="cash">
+        <div class="p-6 bg-green-50 rounded-xl border-4 border-green-300 text-center">
+          <div class="text-4xl mb-2">💵</div>
+          <p class="font-black text-lg text-gray-900">Cash on Delivery</p>
+        </div>
+      </button>
+    </div>
+    <div class="border-t-4 border-yellow-300 p-6">
+      <button id="closePaymentBtn" class="btn-yellow w-full py-3 rounded-xl text-lg font-black">✕ CANCEL</button>
+    </div>
+  </div>
+
+  <!-- CONFIRMATION MODAL -->
+  <div id="confirmationOverlay" class="overlay hidden"></div>
+  <div id="confirmationModal" class="modal-panel hidden">
+    <div class="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-green-50 to-white">
+      <div class="text-8xl mb-4">✅</div>
+      <h2 class="text-3xl font-black text-green-700 mb-2">YES! DONE!</h2>
+      <p class="text-lg text-gray-700 mb-6">Your food is being made 👨‍🍳</p>
+      <div class="bg-yellow-50 rounded-xl border-4 border-yellow-300 p-6 w-full mb-6">
+        <p class="text-sm text-gray-600 font-bold mb-1">Order:</p>
+        <p id="confirmationOrderId" class="text-3xl font-black text-red-700 text-center">ORD-12345</p>
+      </div>
+      <div id="confirmationSummary" class="w-full mb-6"></div>
+      <p class="text-center text-sm text-gray-600 mb-6">🚴 Driver coming in ~30 minutes</p>
+    </div>
+    <div class="border-t-4 border-yellow-300 p-6">
+      <button id="confirmationCloseBtn" class="btn-red w-full py-4 rounded-xl text-xl font-black">🏠 BACK HOME</button>
+    </div>
+  </div>
+
+  <script>
+    // STATE
+    const AppState = {
+      cart: [],
+      selectedZone: 'meals',
+      selectedArea: 'kisugu',
+      deliveryOption: 'standard',
+      
+      deliveryFees: {
+        kisugu: 1000, kansanga: 1000, ggaba: 1500, namwongo: 1000,
+        entebbe: 3000, kasangati: 3000, jinja: 5000,
+      },
+
+      products: {
+        meals: [
+          { id: 'm1', name: 'Rice & Stew', desc: 'With meat', price: 4000, icon: '🍚' },
+          { id: 'm2', name: 'Posho & Beans', desc: 'Hot meal', price: 3500, icon: '🍲' },
+          { id: 'm3', name: 'Fried Chicken', desc: '5-6 pieces', price: 5000, icon: '🍗' },
+          { id: 'm4', name: 'Chapati & Curry', desc: '2 chapatis', price: 3500, icon: '🫓' },
+          { id: 'm5', name: 'Chicken Soup', desc: 'With rice', price: 4500, icon: '🍲' },
+          { id: 'm6', name: 'Matoke & Fish', desc: 'Steamed', price: 6000, icon: '🍌' },
+          { id: 'm7', name: 'Beef Skewers', desc: '3-4 sticks', price: 5500, icon: '🍢' },
+          { id: 'm8', name: 'Ugali & Veg', desc: 'With sukuma', price: 3000, icon: '🥔' },
+        ],
+        snacks: [
+          { id: 's1', name: 'Rolex', desc: 'Egg in chapati', price: 2000, icon: '🌯' },
+          { id: 's2', name: 'Mandazi Pack', desc: '6 pieces', price: 2000, icon: '🍩' },
+          { id: 's3', name: 'Beans on Toast', desc: 'With toast', price: 2500, icon: '🍞' },
+          { id: 's4', name: 'Samosa Pack', desc: '5 pieces', price: 2500, icon: '🥟' },
+          { id: 's5', name: 'Spring Rolls', desc: '4 pieces', price: 3000, icon: '🥠' },
+          { id: 's6', name: 'Doughnut Pack', desc: '5 pieces', price: 2500, icon: '🍩' },
+        ],
+        stuff: [
+          { id: 't1', name: 'Fresh Posho', desc: '1kg', price: 3500, icon: '🌽' },
+          { id: 't2', name: 'Dry Beans', desc: '2kg', price: 6000, icon: '🫘' },
+          { id: 't3', name: 'Tomatoes', desc: 'Heap', price: 4000, icon: '🍅' },
+          { id: 't4', name: 'Cooking Oil', desc: '1L', price: 5000, icon: '🫗' },
+          { id: 't5', name: 'Eggs (15)', desc: 'Fresh', price: 7000, icon: '🥚' },
+          { id: 't6', name: 'Sugar', desc: '500g', price: 3000, icon: '🍬' },
+          { id: 't7', name: 'Denim Jeans', desc: 'Good quality', price: 7500, icon: '👖' },
+          { id: 't8', name: 'Sports Shoes', desc: 'Good condition', price: 10000, icon: '👟' },
+        ],
+      },
+    };
+
+    // DOM
+    const DOM = {
+      areaSelect: document.getElementById('areaSelect'),
+      cartBtn: document.getElementById('cartBtn'),
+      cartCount: document.getElementById('cartCount'),
+      zoneTabs: document.querySelectorAll('.zone-tab'),
+      zoneContents: document.querySelectorAll('.zone-content'),
+      mealsGrid: document.getElementById('mealsGrid'),
+      snacksGrid: document.getElementById('snacksGrid'),
+      stuffGrid: document.getElementById('stuffGrid'),
+      cartPanel: document.getElementById('cartPanel'),
+      cartOverlay: document.getElementById('cartOverlay'),
+      closeCartBtn: document.getElementById('closeCartBtn'),
+      cartItemsList: document.getElementById('cartItemsList'),
+      floatingCartBtn: document.getElementById('floatingCartBtn'),
+      summaryItems: document.getElementById('summaryItems'),
+      summaryDelivery: document.getElementById('summaryDelivery'),
+      summaryTotal: document.getElementById('summaryTotal'),
+      standardFeeDisplay: document.getElementById('standardFeeDisplay'),
+      checkoutBtn: document.getElementById('checkoutBtn'),
+      continueShoppingBtn: document.getElementById('continueShoppingBtn'),
+      paymentModal: document.getElementById('paymentModal'),
+      paymentOverlay: document.getElementById('paymentOverlay'),
+      closePaymentBtn: document.getElementById('closePaymentBtn'),
+      paymentOptions: document.querySelectorAll('.payment-option'),
+      confirmationModal: document.getElementById('confirmationModal'),
+      confirmationOverlay: document.getElementById('confirmationOverlay'),
+      confirmationOrderId: document.getElementById('confirmationOrderId'),
+      confirmationSummary: document.getElementById('confirmationSummary'),
+      confirmationCloseBtn: document.getElementById('confirmationCloseBtn'),
+    };
+
+    // INIT
+    function init() {
+      renderProducts();
+      setupEvents();
+      updateDisplay();
+    }
+
+    // RENDER PRODUCTS
+    function renderProducts() {
+      ['meals', 'snacks', 'stuff'].forEach(zone => {
+        const grid = zone === 'meals' ? DOM.mealsGrid : zone === 'snacks' ? DOM.snacksGrid : DOM.stuffGrid;
+        grid.innerHTML = AppState.products[zone].map(p => `
+          <div class="product-card rounded-xl shadow-md p-4 flex flex-col items-center text-center">
+            <div class="icon-large mb-3">${p.icon}</div>
+            <h3 class="font-black text-base text-gray-900 mb-1">${p.name}</h3>
+            <p class="text-xs text-gray-600 mb-3">${p.desc}</p>
+            <p class="text-2xl font-black text-red-700 mb-3">UGX ${fmt(p.price)}</p>
+            <button onclick="addCart('${p.id}', '${zone}')" class="btn-red w-full py-2 rounded-lg font-black text-sm">+ ADD</button>
+          </div>
+        `).join('');
+      });
+    }
+
+    // ADD TO CART
+    function addCart(id, zone) {
+      const prod = AppState.products[zone].find(p => p.id === id);
+      const existing = AppState.cart.find(item => item.id === id);
+      if (existing) existing.qty++;
+      else AppState.cart.push({...prod, qty: 1});
+      updateDisplay();
+    }
+
+    // UPDATE QUANTITY
+    function updateQty(id, delta) {
+      const item = AppState.cart.find(item => item.id === id);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) AppState.cart = AppState.cart.filter(i => i.id !== id);
+        updateDisplay();
+      }
+    }
+
+    // UPDATE DELIVERY
+    function updateDelivery() {
+      AppState.deliveryOption = document.querySelector('input[name="deliveryOption"]:checked').value;
+      updateDisplay();
+    }
+
+    // FORMAT PRICE
+    function fmt(n) {
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // GET DELIVERY FEE
+    function getDeliveryFee() {
+      const base = AppState.deliveryFees[AppState.selectedArea] || 1000;
+      const express = AppState.deliveryOption === 'express' ? 2000 : 0;
+      return base + express;
+    }
+
+    // UPDATE DISPLAY
+    function updateDisplay() {
+      const total = AppState.cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const delivery = getDeliveryFee();
+      const grandTotal = total + delivery;
+
+      DOM.cartCount.textContent = AppState.cart.length;
+      DOM.standardFeeDisplay.textContent = `+${fmt(AppState.deliveryFees[AppState.selectedArea])} UGX`;
+
+      if (AppState.cart.length === 0) {
+        DOM.cartItemsList.innerHTML = '<div class="empty-state"><div class="text-5xl mb-2">🛒</div><p class="text-lg font-bold">Empty basket</p></div>';
+        DOM.summaryItems.textContent = 'UGX 0';
+        DOM.summaryDelivery.textContent = 'UGX 0';
+        DOM.summaryTotal.textContent = 'UGX 0';
+        DOM.floatingCartBtn.classList.add('hidden');
+        return;
+      }
+
+      DOM.cartItemsList.innerHTML = AppState.cart.map(i => `
+        <div class="cart-item-card">
+          <div>
+            <p class="font-black text-lg">${i.icon} ${i.name}</p>
+            <p class="text-sm text-gray-600">UGX ${fmt(i.price)} x ${i.qty}</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="quantity-btn" onclick="updateQty('${i.id}', -1)">−</button>
+            <span class="font-black min-w-[2rem] text-center">${i.qty}</span>
+            <button class="quantity-btn" onclick="updateQty('${i.id}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+
+      DOM.summaryItems.textContent = `UGX ${fmt(total)}`;
+      DOM.summaryDelivery.textContent = `UGX ${fmt(delivery)}`;
+      DOM.summaryTotal.textContent = `UGX ${fmt(grandTotal)}`;
+      DOM.floatingCartBtn.classList.remove('hidden');
+    }
+
+    // SETUP EVENTS
+    function setupEvents() {
+      DOM.zoneTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          DOM.zoneTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          DOM.zoneContents.forEach(c => c.classList.add('hidden'));
+          document.getElementById(tab.dataset.zone + 'Zone').classList.remove('hidden');
+        });
+      });
+
+      DOM.areaSelect.addEventListener('change', (e) => {
+        AppState.selectedArea = e.target.value;
+        updateDisplay();
+      });
+
+      DOM.cartBtn.addEventListener('click', openCart);
+      DOM.floatingCartBtn.addEventListener('click', openCart);
+      DOM.closeCartBtn.addEventListener('click', closeCart);
+      DOM.continueShoppingBtn.addEventListener('click', closeCart);
+      DOM.cartOverlay.addEventListener('click', closeCart);
+
+      DOM.checkoutBtn.addEventListener('click', () => {
+        if (AppState.cart.length === 0) return alert('Add items first!');
+        closeCart();
+        DOM.paymentModal.classList.remove('hidden');
+        DOM.paymentOverlay.classList.remove('hidden');
+      });
+
+      DOM.closePaymentBtn.addEventListener('click', () => {
+        DOM.paymentModal.classList.add('hidden');
+        DOM.paymentOverlay.classList.add('hidden');
+      });
+
+      DOM.paymentOptions.forEach(btn => {
+        btn.addEventListener('click', () => completeOrder(btn.dataset.method));
+      });
+
+      DOM.confirmationCloseBtn.addEventListener('click', () => {
+        location.reload();
+      });
+    }
+
+    function openCart() {
+      DOM.cartPanel.classList.remove('hidden');
+      DOM.cartOverlay.classList.remove('hidden');
+    }
+
+    function closeCart() {
+      DOM.cartPanel.classList.add('hidden');
+      DOM.cartOverlay.classList.add('hidden');
+    }
+
+    function completeOrder(method) {
+      const orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+      const total = AppState.cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const delivery = getDeliveryFee();
+      const grandTotal = total + delivery;
+
+      DOM.paymentModal.classList.add('hidden');
+      DOM.paymentOverlay.classList.add('hidden');
+
+      DOM.confirmationOrderId.textContent = orderId;
+      DOM.confirmationSummary.innerHTML = `
+        <div class="space-y-2">
+          ${AppState.cart.map(i => `
+            <div class="flex justify-between text-sm font-semibold">
+              <span>${i.icon} ${i.name} x${i.qty}</span>
+              <span>UGX ${fmt(i.price * i.qty)}</span>
+            </div>
+          `).join('')}
+          <div class="border-t-2 border-gray-300 pt-2 flex justify-between font-black text-lg text-red-700">
+            <span>TOTAL:</span>
+            <span>UGX ${fmt(grandTotal)}</span>
+          </div>
+        </div>
+      `;
+
+      DOM.confirmationModal.classList.remove('hidden');
+      DOM.confirmationOverlay.classList.remove('hidden');
+
+      AppState.cart = [];
+      updateDisplay();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 
 </body>
 </html>
