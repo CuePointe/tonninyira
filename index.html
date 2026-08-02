@@ -105,16 +105,26 @@
     height:10px;
     background:repeating-linear-gradient(45deg, var(--red) 0 10px, var(--gold) 10px 20px);
   }
-  .stall-header{display:flex; gap:12px; align-items:flex-start; padding:14px 16px 12px;}
+  .stall-header{display:flex; gap:12px; align-items:flex-start; padding:14px 16px 10px;}
   .avatar{
     width:52px; height:52px; border-radius:50%; flex-shrink:0;
     display:flex; align-items:center; justify-content:center;
     font-family:'Alfa Slab One'; font-size:1.05rem; color:var(--ink);
+    object-fit:cover;
   }
+  .stall-eyebrow{font-size:0.64rem; font-weight:800; letter-spacing:1px; color:var(--gold); margin-bottom:2px;}
   .stall-name{font-weight:800; font-size:1.05rem; color:var(--sand); line-height:1.25;}
   .stall-meta{display:flex; align-items:center; flex-wrap:wrap; gap:5px; font-size:0.78rem; color:var(--muted); margin-top:4px; font-weight:600;}
   .stall-meta svg{width:13px;height:13px;}
   .stall-meta .star{color:var(--gold);}
+  .verify-row{display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:0.68rem; color:var(--green); font-weight:700; margin-top:6px;}
+  .verify-row svg{width:12px;height:12px;}
+
+  .gallery-strip{display:flex; gap:8px; overflow-x:auto; padding:2px 16px 14px; scrollbar-width:none;}
+  .gallery-strip::-webkit-scrollbar{display:none;}
+  .gallery-item{flex-shrink:0; width:118px;}
+  .gallery-item img, .gallery-item video{width:118px; height:88px; object-fit:cover; border-radius:10px; display:block; background:var(--card2);}
+  .gallery-caption{font-size:0.66rem; color:var(--muted); margin-top:4px; line-height:1.25;}
 
   .item-row{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -202,21 +212,25 @@
 
   .btn-primary{
     width:100%; padding:16px; border-radius:14px; border:none; background:var(--red); color:var(--sand);
-    font-family:'Alfa Slab One'; font-size:1.05rem; letter-spacing:0.5px; cursor:pointer; margin-top:14px;
+    font-family:'Alfa Slab One'; font-size:1.02rem; letter-spacing:0.3px; cursor:pointer; margin-top:14px;
   }
   .btn-secondary{
     width:100%; padding:13px; border-radius:14px; border:1.5px solid var(--card2); background:transparent; color:var(--sand);
     font-weight:700; font-size:0.92rem; cursor:pointer; margin-top:10px;
   }
+  .btn-link-alt{
+    width:100%; background:none; border:none; color:var(--gold); font-weight:700; font-size:0.85rem;
+    text-decoration:underline; padding:10px; cursor:pointer;
+  }
 
   .pay-option{
     display:flex; align-items:center; gap:14px; width:100%; text-align:left;
-    background:var(--card); border:1px solid rgba(243,232,216,0.08); border-radius:14px;
-    padding:16px; margin-bottom:12px; cursor:pointer;
+    background:var(--card2); border:1px solid rgba(243,232,216,0.08); border-radius:14px;
+    padding:14px; margin-bottom:10px; cursor:pointer;
   }
-  .pay-option .pay-icon{width:46px;height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
-  .pay-option .pay-name{font-weight:800; font-size:1rem; color:var(--sand);}
-  .pay-option .pay-sub{font-size:0.78rem; color:var(--muted); margin-top:2px;}
+  .pay-option .pay-icon{width:40px;height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .pay-option .pay-name{font-weight:800; font-size:0.95rem; color:var(--sand);}
+  .pay-option .pay-sub{font-size:0.74rem; color:var(--muted); margin-top:2px;}
 
   .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
   .empty-state svg{width:52px;height:52px; margin:0 auto 12px; opacity:0.5;}
@@ -225,6 +239,8 @@
   .confirm-check{width:88px; height:88px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
   .confirm-check svg{width:46px;height:46px; color:var(--sand);}
   .order-id-box{background:var(--card); border-radius:14px; padding:16px; width:100%; margin:18px 0;}
+  .rider-card{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px; padding:14px; width:100%; margin-top:14px;}
+  .verify-check svg{width:14px;height:14px; color:var(--green); vertical-align:-2px;}
 </style>
 </head>
 <body>
@@ -247,13 +263,8 @@
   <div class="location-row">
     <span id="pinIconSvg"></span>
     <select id="areaSelect">
-      <option>Kisugu</option>
-      <option>Kansanga</option>
-      <option>Ggaba</option>
-      <option>Namwongo</option>
-      <option>Entebbe</option>
-      <option>Kasangati</option>
-      <option>Jinja</option>
+      <option>Kisugu</option><option>Kansanga</option><option>Ggaba</option>
+      <option>Namwongo</option><option>Entebbe</option><option>Kasangati</option><option>Jinja</option>
     </select>
   </div>
 
@@ -269,37 +280,19 @@
 <main id="mainArea"></main>
 
 <nav class="bottom-nav">
-  <button class="nav-btn active" id="navHome" onclick="goView('shop')">
-    <span id="navHomeIcon"></span><span>Home</span>
-  </button>
-  <button class="nav-btn" id="navOrders" onclick="goView('orders')">
-    <span id="navOrdersIcon"></span><span>Orders</span>
-  </button>
+  <button class="nav-btn active" id="navHome" onclick="goView('shop')"><span id="navHomeIcon"></span><span>Home</span></button>
+  <button class="nav-btn" id="navOrders" onclick="goView('orders')"><span id="navOrdersIcon"></span><span>Orders</span></button>
   <button class="nav-btn" onclick="openCart()">
     <span id="navCartIcon"></span><span>Cart</span>
     <span class="nav-cart-badge hidden" id="navCartBadge">0</span>
   </button>
-  <button class="nav-btn" id="navProfile" onclick="goView('profile')">
-    <span id="navProfileIcon"></span><span>Profile</span>
-  </button>
+  <button class="nav-btn" id="navProfile" onclick="goView('profile')"><span id="navProfileIcon"></span><span>Profile</span></button>
 </nav>
 
 <div id="cartOverlay" class="overlay hidden" onclick="closeCart()"></div>
 <div id="cartSheet" class="sheet hidden">
-  <div class="sheet-header">
-    <h2>Your Basket</h2>
-    <button class="close-x" onclick="closeCart()">&times;</button>
-  </div>
+  <div class="sheet-header"><h2>Your Basket</h2><button class="close-x" onclick="closeCart()">&times;</button></div>
   <div class="sheet-body" id="cartBody"></div>
-</div>
-
-<div id="payOverlay" class="overlay hidden" onclick="closePayment()"></div>
-<div id="paySheet" class="sheet hidden">
-  <div class="sheet-header">
-    <h2>How to Pay</h2>
-    <button class="close-x" onclick="closePayment()">&times;</button>
-  </div>
-  <div class="sheet-body" id="payBody"></div>
 </div>
 
 <div id="confirmOverlay" class="overlay hidden"></div>
@@ -313,6 +306,7 @@
       <p class="display" style="font-size:1.5rem; color:var(--gold); margin:0;" id="confirmOrderId"></p>
     </div>
     <div id="confirmSummary" style="width:100%;"></div>
+    <div id="confirmRider" style="width:100%;"></div>
     <div class="delivery-note" style="text-align:left; margin-top:16px;">
       <span id="confirmMotoIcon"></span>
       <div>
@@ -321,9 +315,7 @@
       </div>
     </div>
   </div>
-  <div style="padding:16px;">
-    <button class="btn-primary" onclick="resetApp()">Back to Tonninyira</button>
-  </div>
+  <div style="padding:16px;"><button class="btn-primary" onclick="resetApp()">Back to Tonninyira</button></div>
 </div>
 
 <script>
@@ -338,7 +330,6 @@ const ICONS = {
   user: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
-  cash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>`,
   emptyCart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`,
   box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
 };
@@ -353,126 +344,130 @@ document.getElementById('confirmCheckIcon').innerHTML = ICONS.check;
 document.getElementById('confirmMotoIcon').innerHTML = ICONS.moto;
 document.getElementById('brandBadge').innerHTML = `
   <svg viewBox="0 0 200 200" width="30" height="30">
-    <path d="M40,50 L160,50 L160,64 L150,76 L140,64 L130,76 L120,64 L110,76
-             L100,64 L90,76 L80,64 L70,76 L60,64 L50,76 L40,64 Z" fill="#F5B400"/>
-    <rect x="88" y="76" width="24" height="104" rx="10" fill="#E23F25"/>
+    <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
+    <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
+    <g transform="rotate(-10 148 70)">
+      <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
+      <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
+      <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
+      <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
+      <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
+      <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
+    </g>
   </svg>`;
 
 const CATALOG = {
-  eats: {
-    label: "Eats",
-    subs: {
-      breakfast: { label: "Breakfast", vendors: [
-        { id:"v1", name:"Mama Rose's Corner", location:"Kisugu", rating:4.8, reviews:342, years:8, items:[
-          {id:"b1", name:"Rolex", desc:"Egg, tomato & onion in chapati", price:2500},
-          {id:"b2", name:"Mandazi (6 pcs)", desc:"Soft sugar-fried bread", price:2000},
-          {id:"b3", name:"Chapati (2 pcs)", desc:"Fresh off the pan", price:1500},
-          {id:"b4", name:"Milk Tea + Mandazi", desc:"Chai with 2 mandazi", price:2000},
-        ]},
-        { id:"v2", name:"Uncle Fred's Breakfast", location:"Kansanga", rating:4.9, reviews:521, years:15, items:[
-          {id:"b5", name:"Rolex Deluxe", desc:"Double egg, cheese, sausage", price:3800},
-          {id:"b6", name:"Beans on Toast", desc:"Stewed beans, 2 slices toast", price:2500},
-          {id:"b7", name:"Pancakes (4)", desc:"Fried, lightly sweet", price:2000},
-          {id:"b8", name:"Boiled Eggs (3)", desc:"Fresh farm eggs", price:1500},
-        ]},
+  eats: { label:"Eats", subs: {
+    breakfast: { label:"Breakfast", vendors:[
+      { id:"v1", name:"Mama Rose's Corner", location:"Kisugu", rating:4.8, reviews:342, years:8, items:[
+        {id:"b1", name:"Rolex", desc:"Egg, tomato & onion in chapati", price:2500},
+        {id:"b2", name:"Mandazi (6 pcs)", desc:"Soft sugar-fried bread", price:2000},
+        {id:"b3", name:"Chapati (2 pcs)", desc:"Fresh off the pan", price:1500},
+        {id:"b4", name:"Milk Tea + Mandazi", desc:"Chai with 2 mandazi", price:2000},
       ]},
-      lunch: { label: "Lunch", vendors: [
-        { id:"v3", name:"Fatima's Kitchen", location:"Ggaba", rating:4.9, reviews:612, years:12, items:[
-          {id:"l1", name:"Posho & Beans", desc:"Classic hot lunch plate", price:3500},
-          {id:"l2", name:"Rice & Beef Stew", desc:"With carrots & potatoes", price:4800},
-          {id:"l3", name:"Matoke & Fish", desc:"Steamed plantain, fried fish", price:6500},
-          {id:"l4", name:"Ugali & Sukuma", desc:"With greens & groundnut sauce", price:3000},
-        ]},
-        { id:"v4", name:"Sylvia's Homestyle", location:"Namwongo", rating:4.7, reviews:289, years:6, items:[
-          {id:"l5", name:"Chapati & Beef Curry", desc:"2 chapatis, rich sauce", price:3800},
-          {id:"l6", name:"Chicken & Rice", desc:"Half chicken, seasoned rice", price:5500},
-          {id:"l7", name:"Kikomando", desc:"Chapati & bean mix", price:3000},
-          {id:"l8", name:"Groundnut Stew & Posho", desc:"Peanut sauce, greens", price:3500},
-        ]},
+      { id:"v2", name:"Uncle Fred's Breakfast", location:"Kansanga", rating:4.9, reviews:521, years:15, items:[
+        {id:"b5", name:"Rolex Deluxe", desc:"Double egg, cheese, sausage", price:3800},
+        {id:"b6", name:"Beans on Toast", desc:"Stewed beans, 2 slices toast", price:2500},
+        {id:"b7", name:"Pancakes (4)", desc:"Fried, lightly sweet", price:2000},
+        {id:"b8", name:"Boiled Eggs (3)", desc:"Fresh farm eggs", price:1500},
       ]},
-      fastfoods: { label: "Fast Foods", vendors: [
-        { id:"v5", name:"Grace's Grill", location:"Kisugu Market", rating:4.8, reviews:334, years:10, items:[
-          {id:"f1", name:"Fried Chicken (6 pcs)", desc:"Crispy, spiced", price:6000},
-          {id:"f2", name:"Chips & Sausage", desc:"Fries + grilled sausage", price:4000},
-          {id:"f3", name:"Fish Fry (2 pcs)", desc:"Tilapia, deep fried", price:6500},
-          {id:"f4", name:"Chicken & Chips Combo", desc:"2 pcs chicken + fries", price:6500},
-        ]},
-        { id:"v6", name:"John's Quick Bites", location:"Namwongo Roadside", rating:4.6, reviews:178, years:4, items:[
-          {id:"f5", name:"Samosa Pack (5)", desc:"Minced beef filling", price:2500},
-          {id:"f6", name:"Beef Skewers (3)", desc:"Grilled over charcoal", price:5000},
-          {id:"f7", name:"Spring Rolls (4)", desc:"Vegetable filling", price:3000},
-          {id:"f8", name:"Cabbage Rolls (3)", desc:"Lightly fried", price:2000},
-        ]},
+    ]},
+    lunch: { label:"Lunch", vendors:[
+      { id:"v3", name:"Fatima's Kitchen", location:"Ggaba", rating:4.9, reviews:612, years:12, items:[
+        {id:"l1", name:"Posho & Beans", desc:"Classic hot lunch plate", price:3500},
+        {id:"l2", name:"Rice & Beef Stew", desc:"With carrots & potatoes", price:4800},
+        {id:"l3", name:"Matoke & Fish", desc:"Steamed plantain, fried fish", price:6500},
+        {id:"l4", name:"Ugali & Sukuma", desc:"With greens & groundnut sauce", price:3000},
       ]},
-    }
-  },
-  shop: {
-    label: "Shop",
-    subs: {
-      groceries: { label: "Groceries", vendors: [
-        { id:"v7", name:"Owino Grains Corner", location:"Owino Market", rating:4.6, reviews:756, years:18, items:[
-          {id:"g1", name:"Posho (1kg)", desc:"Fine white maize flour", price:3500},
-          {id:"g2", name:"Dry Beans (2kg)", desc:"Sorted, clean", price:6000},
-          {id:"g3", name:"Cooking Oil (1L)", desc:"Vegetable oil", price:5000},
-          {id:"g4", name:"Sugar (1kg)", desc:"Fine white sugar", price:4500},
-        ]},
-        { id:"v8", name:"Kisugu Fresh Mart", location:"Kisugu", rating:4.5, reviews:298, years:9, items:[
-          {id:"g5", name:"Rice (2kg)", desc:"Long grain", price:8000},
-          {id:"g6", name:"Salt (500g)", desc:"Iodized", price:1000},
-          {id:"g7", name:"Tea Leaves (250g)", desc:"Local blend", price:3500},
-          {id:"g8", name:"Bar Soap (3 pcs)", desc:"Laundry soap", price:4000},
-        ]},
+      { id:"v4", name:"Sylvia's Homestyle", location:"Namwongo", rating:4.7, reviews:289, years:6, items:[
+        {id:"l5", name:"Chapati & Beef Curry", desc:"2 chapatis, rich sauce", price:3800},
+        {id:"l6", name:"Chicken & Rice", desc:"Half chicken, seasoned rice", price:5500},
+        {id:"l7", name:"Kikomando", desc:"Chapati & bean mix", price:3000},
+        {id:"l8", name:"Groundnut Stew & Posho", desc:"Peanut sauce, greens", price:3500},
       ]},
-      rawfoods: { label: "Raw Foods", vendors: [
-        { id:"v9", name:"Owino Fresh Produce", location:"Owino Market", rating:4.5, reviews:892, years:20, items:[
-          {id:"r1", name:"Tomatoes (heap)", desc:"30+ pieces", price:4000},
-          {id:"r2", name:"Onions (bunch)", desc:"5-6 large bulbs", price:2500},
-          {id:"r3", name:"Sukuma Wiki", desc:"Fresh greens, bundle", price:2000},
-          {id:"r4", name:"Irish Potatoes (5kg)", desc:"Farm fresh", price:9000},
-        ]},
-        { id:"v10", name:"Ggaba Fish Landing", location:"Ggaba", rating:4.7, reviews:410, years:14, items:[
-          {id:"r5", name:"Fresh Tilapia (1kg)", desc:"Whole fish", price:12000},
-          {id:"r6", name:"Nile Perch (1kg)", desc:"Fillet cut", price:15000},
-          {id:"r7", name:"Mukene (500g)", desc:"Dried silver fish", price:5000},
-          {id:"r8", name:"Smoked Fish", desc:"Whole, smoked", price:8000},
-        ]},
+    ]},
+    fastfoods: { label:"Fast Foods", vendors:[
+      { id:"v5", name:"Grace's Grill", location:"Kisugu Market", rating:4.8, reviews:334, years:10, items:[
+        {id:"f1", name:"Fried Chicken (6 pcs)", desc:"Crispy, spiced", price:6000},
+        {id:"f2", name:"Chips & Sausage", desc:"Fries + grilled sausage", price:4000},
+        {id:"f3", name:"Fish Fry (2 pcs)", desc:"Tilapia, deep fried", price:6500},
+        {id:"f4", name:"Chicken & Chips Combo", desc:"2 pcs chicken + fries", price:6500},
       ]},
-      mivumba: { label: "Mivumba", vendors: [
-        { id:"v11", name:"Bwaise Bale Traders", location:"Bwaise", rating:4.4, reviews:203, years:7, items:[
-          {id:"m1", name:"Men's Shirts Bundle", desc:"Assorted, 20 pieces", price:60000},
-          {id:"m2", name:"Kids Wear Bundle", desc:"Mixed sizes, 25 pieces", price:45000},
-          {id:"m3", name:"Jeans Bundle", desc:"Assorted, 15 pairs", price:90000},
-          {id:"m4", name:"Ladies Tops Bundle", desc:"Assorted, 20 pieces", price:55000},
-        ]},
-        { id:"v12", name:"Owino Bale Corner", location:"Owino Market", rating:4.5, reviews:267, years:11, items:[
-          {id:"m5", name:"Ladies Dresses Bundle", desc:"Assorted, 15 pieces", price:70000},
-          {id:"m6", name:"Men's Trousers Bundle", desc:"Assorted, 12 pairs", price:80000},
-          {id:"m7", name:"Baby Clothes Bundle", desc:"0-2 yrs, 30 pieces", price:40000},
-          {id:"m8", name:"Sweaters Bundle", desc:"Assorted, 15 pieces", price:65000},
-        ]},
+      { id:"v6", name:"John's Quick Bites", location:"Namwongo Roadside", rating:4.6, reviews:178, years:4, items:[
+        {id:"f5", name:"Samosa Pack (5)", desc:"Minced beef filling", price:2500},
+        {id:"f6", name:"Beef Skewers (3)", desc:"Grilled over charcoal", price:5000},
+        {id:"f7", name:"Spring Rolls (4)", desc:"Vegetable filling", price:3000},
+        {id:"f8", name:"Cabbage Rolls (3)", desc:"Lightly fried", price:2000},
       ]},
-      secondhand: { label: "Second-Hand", vendors: [
-        { id:"v13", name:"Kampala Kicks", location:"Kisugu", rating:4.6, reviews:189, years:5, items:[
-          {id:"sh1", name:"Nike Sneakers", desc:"Size 42, good condition", price:35000},
-          {id:"sh2", name:"Leather Loafers", desc:"Size 43", price:25000},
-          {id:"sh3", name:"Kids Shoes", desc:"Assorted sizes", price:15000},
-          {id:"sh4", name:"Running Shoes", desc:"Size 41", price:30000},
-        ]},
-        { id:"v14", name:"Vintage Corner", location:"Owino Market", rating:4.5, reviews:156, years:8, items:[
-          {id:"sh5", name:"Leather Handbag", desc:"Genuine leather", price:40000},
-          {id:"sh6", name:"Denim Jacket", desc:"Medium size", price:35000},
-          {id:"sh7", name:"Formal Shirt", desc:"Size L", price:15000},
-          {id:"sh8", name:"Backpack", desc:"Good condition", price:20000},
-        ]},
+    ]},
+  }},
+  shop: { label:"Shop", subs: {
+    groceries: { label:"Groceries", vendors:[
+      { id:"v7", name:"Owino Grains Corner", location:"Owino Market", rating:4.6, reviews:756, years:18, items:[
+        {id:"g1", name:"Posho (1kg)", desc:"Fine white maize flour", price:3500},
+        {id:"g2", name:"Dry Beans (2kg)", desc:"Sorted, clean", price:6000},
+        {id:"g3", name:"Cooking Oil (1L)", desc:"Vegetable oil", price:5000},
+        {id:"g4", name:"Sugar (1kg)", desc:"Fine white sugar", price:4500},
       ]},
-    }
-  }
+      { id:"v8", name:"Kisugu Fresh Mart", location:"Kisugu", rating:4.5, reviews:298, years:9, items:[
+        {id:"g5", name:"Rice (2kg)", desc:"Long grain", price:8000},
+        {id:"g6", name:"Salt (500g)", desc:"Iodized", price:1000},
+        {id:"g7", name:"Tea Leaves (250g)", desc:"Local blend", price:3500},
+        {id:"g8", name:"Bar Soap (3 pcs)", desc:"Laundry soap", price:4000},
+      ]},
+    ]},
+    rawfoods: { label:"Raw Foods", vendors:[
+      { id:"v9", name:"Owino Fresh Produce", location:"Owino Market", rating:4.5, reviews:892, years:20, items:[
+        {id:"r1", name:"Tomatoes (heap)", desc:"30+ pieces", price:4000},
+        {id:"r2", name:"Onions (bunch)", desc:"5-6 large bulbs", price:2500},
+        {id:"r3", name:"Sukuma Wiki", desc:"Fresh greens, bundle", price:2000},
+        {id:"r4", name:"Irish Potatoes (5kg)", desc:"Farm fresh", price:9000},
+      ]},
+      { id:"v10", name:"Ggaba Fish Landing", location:"Ggaba", rating:4.7, reviews:410, years:14, items:[
+        {id:"r5", name:"Fresh Tilapia (1kg)", desc:"Whole fish", price:12000},
+        {id:"r6", name:"Nile Perch (1kg)", desc:"Fillet cut", price:15000},
+        {id:"r7", name:"Mukene (500g)", desc:"Dried silver fish", price:5000},
+        {id:"r8", name:"Smoked Fish", desc:"Whole, smoked", price:8000},
+      ]},
+    ]},
+    mivumba: { label:"Mivumba", vendors:[
+      { id:"v11", name:"Bwaise Bale Traders", location:"Bwaise", rating:4.4, reviews:203, years:7, items:[
+        {id:"m1", name:"Men's Shirts Bundle", desc:"Assorted, 20 pieces", price:60000},
+        {id:"m2", name:"Kids Wear Bundle", desc:"Mixed sizes, 25 pieces", price:45000},
+        {id:"m3", name:"Jeans Bundle", desc:"Assorted, 15 pairs", price:90000},
+        {id:"m4", name:"Ladies Tops Bundle", desc:"Assorted, 20 pieces", price:55000},
+      ]},
+      { id:"v12", name:"Owino Bale Corner", location:"Owino Market", rating:4.5, reviews:267, years:11, items:[
+        {id:"m5", name:"Ladies Dresses Bundle", desc:"Assorted, 15 pieces", price:70000},
+        {id:"m6", name:"Men's Trousers Bundle", desc:"Assorted, 12 pairs", price:80000},
+        {id:"m7", name:"Baby Clothes Bundle", desc:"0-2 yrs, 30 pieces", price:40000},
+        {id:"m8", name:"Sweaters Bundle", desc:"Assorted, 15 pieces", price:65000},
+      ]},
+    ]},
+    secondhand: { label:"Second-Hand", vendors:[
+      { id:"v13", name:"Kampala Kicks", location:"Kisugu", rating:4.6, reviews:189, years:5, items:[
+        {id:"sh1", name:"Nike Sneakers", desc:"Size 42, good condition", price:35000},
+        {id:"sh2", name:"Leather Loafers", desc:"Size 43", price:25000},
+        {id:"sh3", name:"Kids Shoes", desc:"Assorted sizes", price:15000},
+        {id:"sh4", name:"Running Shoes", desc:"Size 41", price:30000},
+      ]},
+      { id:"v14", name:"Vintage Corner", location:"Owino Market", rating:4.5, reviews:156, years:8, items:[
+        {id:"sh5", name:"Leather Handbag", desc:"Genuine leather", price:40000},
+        {id:"sh6", name:"Denim Jacket", desc:"Medium size", price:35000},
+        {id:"sh7", name:"Formal Shirt", desc:"Size L", price:15000},
+        {id:"sh8", name:"Backpack", desc:"Good condition", price:20000},
+      ]},
+    ]},
+  }},
 };
 
-const AppState = {
-  category:"eats", subcategory:"breakfast", view:"shop",
-  searchTerm:"", cart:[],
-};
+const SAMPLE_RIDERS = [
+  {tid:'TN-RD-00142', name:'Moses K.', vehicle:'Boda-boda · UEB 245K', rating:4.9},
+  {tid:'TN-RD-00098', name:'Grace N.', vehicle:'Boda-boda · UEC 512M', rating:4.8},
+  {tid:'TN-RD-00211', name:'Ibrahim S.', vehicle:'Boda-boda · UED 763P', rating:4.95},
+];
+
+const AppState = { category:"eats", subcategory:"breakfast", view:"shop", searchTerm:"", cart:[] };
 const AVATAR_COLORS = ['#E23F25','#F5B400','#4C9A5B','#C98F00','#B92E18'];
 
 function initials(name){
@@ -494,10 +489,22 @@ function findVendor(vendorId){
   }
   return null;
 }
+function allVendorsFlat(){
+  let flat=[];
+  Object.entries(CATALOG).forEach(([catKey,cat])=>{
+    Object.entries(cat.subs).forEach(([subKey,sub])=>{
+      sub.vendors.forEach(v=>flat.push({...v, catKey, subKey}));
+    });
+  });
+  return flat;
+}
+function stallNumberFor(vendorId){
+  const idx = allVendorsFlat().findIndex(v=>v.id===vendorId);
+  return idx>=0 ? idx+1 : '—';
+}
 
 function renderCatTabs(){
-  const el = document.getElementById('catTabs');
-  el.innerHTML = Object.keys(CATALOG).map(catKey=>`
+  document.getElementById('catTabs').innerHTML = Object.keys(CATALOG).map(catKey=>`
     <button class="cat-tab ${catKey===AppState.category?'active':''}" onclick="selectCategory('${catKey}')">${CATALOG[catKey].label.toUpperCase()}</button>
   `).join('');
 }
@@ -509,9 +516,8 @@ function selectCategory(catKey){
   renderAll();
 }
 function renderSubcatChips(){
-  const el = document.getElementById('subcatRow');
   const subs = CATALOG[AppState.category].subs;
-  el.innerHTML = Object.keys(subs).map(subKey=>`
+  document.getElementById('subcatRow').innerHTML = Object.keys(subs).map(subKey=>`
     <button class="subcat-chip ${subKey===AppState.subcategory?'active':''}" onclick="selectSubcategory('${subKey}')">${subs[subKey].label}</button>
   `).join('');
 }
@@ -525,9 +531,7 @@ function renderPopular(){
   const el = document.getElementById('popularWrap');
   if(AppState.searchTerm){ el.innerHTML=''; return; }
   let all=[];
-  Object.entries(CATALOG[AppState.category].subs).forEach(([subKey,sub])=>{
-    sub.vendors.forEach(v=>all.push({...v,subKey}));
-  });
+  Object.entries(CATALOG[AppState.category].subs).forEach(([subKey,sub])=>sub.vendors.forEach(v=>all.push({...v,subKey})));
   all.sort((a,b)=>b.rating-a.rating);
   const top = all.slice(0,5);
   el.innerHTML = `
@@ -561,22 +565,13 @@ function renderMain(){
   document.getElementById('subcatRow').classList.toggle('hidden', !tabsShown);
   document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
 
-  if(AppState.view==='orders'){
-    el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Your past orders will show up here once you place one.</p></div>`;
-    return;
-  }
-  if(AppState.view==='profile'){
-    el.innerHTML = `<div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>`;
-    return;
-  }
-
-  if(AppState.searchTerm){
-    renderSearchResults();
-    return;
-  }
+  if(AppState.view==='orders'){ el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Your past orders will show up here once you place one.</p></div>`; return; }
+  if(AppState.view==='profile'){ el.innerHTML = `<div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>`; return; }
+  if(AppState.searchTerm){ renderSearchResults(); return; }
 
   const sub = CATALOG[AppState.category].subs[AppState.subcategory];
-  el.innerHTML = `<div class="stall-list">${sub.vendors.map(v=>vendorCardHTML(v)).join('')}</div>`;
+  const vendorsWithCtx = sub.vendors.map(v=>({...v, catKey:AppState.category, subKey:AppState.subcategory}));
+  el.innerHTML = `<div class="stall-list">${vendorsWithCtx.map(v=>vendorCardHTML(v)).join('')}</div>`;
 }
 
 function renderSearchResults(){
@@ -588,7 +583,7 @@ function renderSearchResults(){
       sub.vendors.forEach(v=>{
         const vendorHit = v.name.toLowerCase().includes(term);
         const matchedItems = v.items.filter(i=>i.name.toLowerCase().includes(term) || vendorHit);
-        if(matchedItems.length) matches.push({...v, items: vendorHit ? v.items : matchedItems});
+        if(matchedItems.length) matches.push({...v, items: vendorHit ? v.items : matchedItems, catKey, subKey});
       });
     });
   });
@@ -600,20 +595,40 @@ function renderSearchResults(){
 }
 
 function vendorCardHTML(v){
+  const stallNo = stallNumberFor(v.id);
+  const showUNBS = v.catKey==='eats' || v.subKey==='groceries' || v.subKey==='rawfoods';
+  const avatarOrLogo = v.logo
+    ? `<img src="${v.logo}" class="avatar" onerror="this.outerHTML='<div class=&quot;avatar&quot; style=&quot;background:${avatarColor(v.name)}&quot;>${initials(v.name)}</div>'">`
+    : `<div class="avatar" style="background:${avatarColor(v.name)};">${initials(v.name)}</div>`;
+  const galleryHTML = (v.gallery && v.gallery.length) ? `
+    <div class="gallery-strip">
+      ${v.gallery.map(g=>`
+        <div class="gallery-item">
+          ${g.type==='video'
+            ? `<video src="${g.url}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>`
+            : `<img src="${g.url}" loading="lazy">`}
+          ${g.caption ? `<div class="gallery-caption">${g.caption}</div>` : ''}
+        </div>`).join('')}
+    </div>` : '';
+
   return `
     <div class="stall-card" id="vendor-${v.id}">
       <div class="stall-roof"></div>
       <div class="stall-header">
-        <div class="avatar" style="background:${avatarColor(v.name)};">${initials(v.name)}</div>
+        ${avatarOrLogo}
         <div>
+          <div class="stall-eyebrow">STALL NO. ${stallNo}</div>
           <div class="stall-name">${v.name}</div>
           <div class="stall-meta">
-            ${ICONS.pin} ${v.location}
-            &nbsp;·&nbsp; ${ICONS.star}${v.rating} (${v.reviews})
-            &nbsp;·&nbsp; ${v.years} yrs on Tonninyira
+            ${ICONS.pin} ${v.location} &nbsp;·&nbsp; ${ICONS.star}${v.rating} (${v.reviews}) &nbsp;·&nbsp; ${v.years} yrs on Tonninyira
+          </div>
+          <div class="verify-row">
+            ${ICONS.check} KCCA Licensed &nbsp;·&nbsp; ${ICONS.check} URA Registered
+            ${showUNBS ? '&nbsp;·&nbsp; '+ICONS.check+' UNBS Certified' : ''}
           </div>
         </div>
       </div>
+      ${galleryHTML}
       ${v.items.map(item=>`
         <div class="item-row">
           <div>
@@ -624,8 +639,7 @@ function vendorCardHTML(v){
             <span class="price-tag">${fmt(item.price)}</span>
             <button class="add-btn" onclick="addToCart('${v.id}','${item.id}')">+</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`).join('')}
     </div>`;
 }
 
@@ -663,17 +677,14 @@ function updateCartUI(){
     <div class="delivery-note">
       ${ICONS.moto}
       <div>
-        <p class="dn-title">Delivery fee: set by your rider, not by Tonninyira</p>
-        <p class="dn-body">You'll get the exact fee before pickup — usually UGX 1,000–4,000 depending on distance.</p>
+        <p class="dn-title">Delivery fee: set by your Tonninyira rider</p>
+        <p class="dn-body">Our riders are ID-verified and carry a Tonninyira Rider ID. You'll get the exact fee before pickup — usually UGX 1,000–4,000 depending on distance.</p>
       </div>
     </div>
     ${AppState.cart.map(c=>`
       <div class="cart-line-card">
         <div class="cart-line-top">
-          <div>
-            <div style="font-weight:700;">${c.name}</div>
-            <div class="cart-line-vendor">From ${c.vendorName}</div>
-          </div>
+          <div><div style="font-weight:700;">${c.name}</div><div class="cart-line-vendor">From ${c.vendorName}</div></div>
           <div class="price-tag">${fmt(c.price)}</div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
@@ -684,66 +695,55 @@ function updateCartUI(){
             <button class="qty-btn" onclick="updateQty('${c.vendorId}','${c.itemId}',1)">+</button>
           </div>
         </div>
-      </div>
-    `).join('')}
+      </div>`).join('')}
     <div class="summary-box">
       <div class="summary-row"><span>Subtotal (to vendors)</span><span>UGX ${fmt(cartSubtotal())}</span></div>
       <div class="summary-row"><span>Delivery</span><span>Set by rider</span></div>
       <div class="summary-row total"><span>You pay vendors</span><span>UGX ${fmt(cartSubtotal())}</span></div>
     </div>
-    <button class="btn-primary" onclick="goToPayment()">Proceed to Payment</button>
+    <button class="btn-primary" onclick="completeOrder('Cash on Delivery')">Place Order — Pay Cash on Delivery</button>
+    <button class="btn-link-alt" onclick="toggleAltPay()">Prefer Mobile Money instead?</button>
+    <div id="altPayBox" class="hidden" style="margin-top:6px;">
+      <button class="pay-option" onclick="completeOrder('MTN MoMo')">
+        <div class="pay-icon" style="background:var(--gold); color:var(--ink);">${ICONS.phone}</div>
+        <div><div class="pay-name">MTN MoMo</div><div class="pay-sub">Pay from your MTN mobile money</div></div>
+      </button>
+      <button class="pay-option" onclick="completeOrder('Airtel Money')">
+        <div class="pay-icon" style="background:var(--red); color:var(--sand);">${ICONS.phone}</div>
+        <div><div class="pay-name">Airtel Money</div><div class="pay-sub">Pay from your Airtel mobile money</div></div>
+      </button>
+    </div>
     <button class="btn-secondary" onclick="closeCart()">Keep Browsing</button>
   `;
 }
+function toggleAltPay(){ document.getElementById('altPayBox').classList.toggle('hidden'); }
 
-function openCart(){
-  document.getElementById('cartOverlay').classList.remove('hidden');
-  document.getElementById('cartSheet').classList.remove('hidden');
-}
-function closeCart(){
-  document.getElementById('cartOverlay').classList.add('hidden');
-  document.getElementById('cartSheet').classList.add('hidden');
-}
+function openCart(){ document.getElementById('cartOverlay').classList.remove('hidden'); document.getElementById('cartSheet').classList.remove('hidden'); }
+function closeCart(){ document.getElementById('cartOverlay').classList.add('hidden'); document.getElementById('cartSheet').classList.add('hidden'); }
 document.getElementById('cartIconBtn').addEventListener('click', openCart);
 
-function goToPayment(){
-  if(AppState.cart.length===0) return;
-  closeCart();
-  const body = document.getElementById('payBody');
-  body.innerHTML = `
-    <button class="pay-option" onclick="completeOrder('MTN MoMo')">
-      <div class="pay-icon" style="background:var(--gold); color:var(--ink);">${ICONS.phone}</div>
-      <div><div class="pay-name">MTN MoMo</div><div class="pay-sub">Pay from your MTN mobile money</div></div>
-    </button>
-    <button class="pay-option" onclick="completeOrder('Airtel Money')">
-      <div class="pay-icon" style="background:var(--red); color:var(--sand);">${ICONS.phone}</div>
-      <div><div class="pay-name">Airtel Money</div><div class="pay-sub">Pay from your Airtel mobile money</div></div>
-    </button>
-    <button class="pay-option" onclick="completeOrder('Cash on Delivery')">
-      <div class="pay-icon" style="background:var(--green); color:var(--sand);">${ICONS.cash}</div>
-      <div><div class="pay-name">Cash on Delivery</div><div class="pay-sub">Pay the vendor's total + rider fee when it arrives</div></div>
-    </button>
-  `;
-  document.getElementById('payOverlay').classList.remove('hidden');
-  document.getElementById('paySheet').classList.remove('hidden');
-}
-function closePayment(){
-  document.getElementById('payOverlay').classList.add('hidden');
-  document.getElementById('paySheet').classList.add('hidden');
-}
-
 async function completeOrder(method){
+  if(AppState.cart.length===0) return;
   const orderId = 'TN-' + Math.random().toString(36).substr(2,7).toUpperCase();
   const subtotal = cartSubtotal();
-  closePayment();
+  closeCart();
 
   document.getElementById('confirmOrderId').textContent = orderId;
   document.getElementById('confirmSummary').innerHTML = `
     <div class="summary-box" style="text-align:left;">
-      ${AppState.cart.map(c=>`
-        <div class="summary-row"><span>${c.name} ×${c.qty}</span><span>UGX ${fmt(c.price*c.qty)}</span></div>
-      `).join('')}
+      ${AppState.cart.map(c=>`<div class="summary-row"><span>${c.name} ×${c.qty}</span><span>UGX ${fmt(c.price*c.qty)}</span></div>`).join('')}
       <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal)}</span></div>
+    </div>`;
+
+  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
+  document.getElementById('confirmRider').innerHTML = `
+    <div class="rider-card">
+      <div class="avatar" style="background:${avatarColor(rider.name)}; width:44px;height:44px;font-size:0.85rem;">${initials(rider.name)}</div>
+      <div style="flex:1;">
+        <div style="font-weight:800;">${rider.name} <span class="verify-check">${ICONS.check}</span></div>
+        <div style="font-size:0.78rem; color:var(--muted);">${rider.vehicle} · ${rider.tid}</div>
+      </div>
+      <div style="text-align:right; color:var(--gold); font-weight:800;">★ ${rider.rating}</div>
     </div>`;
 
   document.getElementById('confirmOverlay').classList.remove('hidden');
@@ -752,9 +752,9 @@ async function completeOrder(method){
   try{
     await supabaseClient.from('orders').insert({
       order_id: orderId, items: AppState.cart, subtotal, payment_method: method,
-      area: document.getElementById('areaSelect').value, created_at: new Date().toISOString(),
+      area: document.getElementById('areaSelect').value, rider_tid: rider.tid, created_at: new Date().toISOString(),
     });
-  }catch(e){ console.log('Order log skipped (no backend configured):', e.message); }
+  }catch(e){ console.log('Order log skipped (Supabase not configured):', e.message); }
 
   AppState.cart = [];
   updateCartUI();
@@ -769,37 +769,68 @@ function goView(view){
   renderMain();
   window.scrollTo({top:0, behavior:'smooth'});
 }
-
 function resetApp(){
   document.getElementById('confirmOverlay').classList.add('hidden');
   document.getElementById('confirmSheet').classList.add('hidden');
-  AppState.cart = [];
-  AppState.searchTerm = '';
+  AppState.cart = []; AppState.searchTerm = '';
   document.getElementById('searchInput').value = '';
-  goView('shop');
-  updateCartUI();
+  goView('shop'); updateCartUI();
 }
 
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   AppState.searchTerm = e.target.value.trim();
-  renderPopular();
-  renderMain();
+  renderPopular(); renderMain();
 });
 
 const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
 const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
 let supabaseClient;
 try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-catch(e){ supabaseClient = { from:()=>({insert:async()=>{}}) }; }
+catch(e){ supabaseClient = { from:()=>({insert:async()=>({}), select:async()=>({data:null,error:'no client'})}) }; }
 
-function renderAll(){
-  renderCatTabs();
-  renderSubcatChips();
-  renderPopular();
-  renderMain();
+/* Pulls real registered stalls (with their own logo/gallery/items) from the
+   'vendors' table your admin console writes to. Silently does nothing if
+   Supabase isn't configured yet or the table is empty. */
+async function loadLiveVendors(){
+  try{
+    const {data, error} = await supabaseClient.from('vendors').select('*');
+    if(error || !data || !data.length) return;
+    data.forEach((rv, idx)=>{
+      const catKey = rv.category, subKey = rv.subcategory;
+      if(!CATALOG[catKey] || !CATALOG[catKey].subs[subKey]) return;
+      const items = (rv.items||[]).map((it,i)=>({...it, id:(rv.tonninyira_id||'live'+idx)+'-i'+i}));
+      if(!items.length) return;
+      CATALOG[catKey].subs[subKey].vendors.push({
+        id: rv.tonninyira_id || ('live-'+idx),
+        name: rv.business_name, location: rv.location||'',
+        rating: rv.rating||4.5, reviews: rv.reviews||0, years: rv.years||0,
+        logo: rv.logo_url||null, gallery: rv.gallery||[], items,
+      });
+    });
+    renderAll();
+  }catch(e){ console.log('Live vendor data unavailable yet:', e.message); }
 }
+async function loadLiveRiders(){
+  try{
+    /* Queries riders_public (a view with no national_id/phone columns) --
+       never the raw riders table -- see the SQL note in the admin console. */
+    const {data, error} = await supabaseClient.from('riders_public').select('*');
+    if(error || !data || !data.length) return;
+    data.forEach(r=>{
+      const parts = (r.full_name||'Rider').split(' ');
+      SAMPLE_RIDERS.push({
+        tid: r.tonninyira_id, name: parts[0] + (parts[1] ? ' '+parts[1][0]+'.' : ''),
+        vehicle: (r.vehicle_type||'Boda-boda') + ' · ' + (r.plate_number||''), rating: r.rating||4.8,
+      });
+    });
+  }catch(e){ console.log('Live rider data unavailable yet:', e.message); }
+}
+
+function renderAll(){ renderCatTabs(); renderSubcatChips(); renderPopular(); renderMain(); }
 renderAll();
 updateCartUI();
+loadLiveVendors();
+loadLiveRiders();
 </script>
 </body>
 </html>
