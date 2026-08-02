@@ -1,627 +1,836 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tonninyira - Order Food & Market Items</title>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --primary-red: #DC2626;
-      --primary-yellow: #FBBF24;
-      --dark-red: #991B1B;
-      --light-yellow: #FEF3C7;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tonninyira — Local Vendors. Real Prices. Your Door.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#1C1410; --card:#2A1F19; --card2:#33261C;
+    --red:#E23F25; --red-dark:#B92E18;
+    --gold:#F5B400; --gold-dark:#C98F00;
+    --green:#4C9A5B;
+    --sand:#F3E8D8; --muted:#9C897A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ink); color:var(--sand);
+    font-family:'Work Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:84px;
+  }
+  .display{font-family:'Alfa Slab One',cursive;}
+  .hidden{display:none !important;}
+  svg.icon{width:20px;height:20px;flex-shrink:0;}
 
-    * {
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+  header{
+    background:var(--ink);
+    position:sticky; top:0; z-index:40;
+    border-bottom:1px solid rgba(243,232,216,0.08);
+    padding:14px 16px 12px;
+  }
+  .brand-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .brand-lockup{display:flex; align-items:center; gap:10px;}
+  .brand-badge{width:42px;height:42px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-name{font-size:1.4rem; letter-spacing:0.5px; color:var(--sand); line-height:1;}
+  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:3px;}
+  .icon-btn{
+    position:relative; width:44px; height:44px; border-radius:12px;
+    background:var(--card); border:none; color:var(--sand);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .icon-btn:active{background:var(--card2);}
+  .badge{
+    position:absolute; top:-6px; right:-6px; background:var(--red); color:var(--sand);
+    font-size:0.65rem; font-weight:800; min-width:19px; height:19px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; padding:0 3px;
+  }
+  .location-row{
+    margin-top:12px; display:flex; align-items:center; gap:8px;
+    background:var(--card); border-radius:12px; padding:9px 12px;
+  }
+  .location-row select{
+    flex:1; background:transparent; border:none; color:var(--sand); font-family:'Work Sans'; font-weight:600; font-size:0.9rem;
+  }
+  .location-row select:focus{outline:none;}
+  .location-row option{background:var(--card); color:var(--sand);}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #FEF3C7 0%, #FFFFFF 100%);
-    }
+  .search-row{margin-top:12px; position:relative;}
+  .search-row input{
+    width:100%; padding:12px 14px 12px 42px; border-radius:12px; border:1px solid rgba(243,232,216,0.12);
+    background:var(--card); color:var(--sand); font-family:'Work Sans'; font-size:0.95rem; font-weight:500;
+  }
+  .search-row input::placeholder{color:var(--muted);}
+  .search-row input:focus{outline:none; border-color:var(--gold);}
+  .search-row svg{position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted);}
 
-    .header-red {
-      background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
-    }
+  .cat-tabs{display:flex; gap:8px; padding:14px 16px 0;}
+  .cat-tab{
+    flex:1; padding:13px 10px; border-radius:14px; border:none; cursor:pointer;
+    font-family:'Alfa Slab One'; font-size:1rem; letter-spacing:0.5px;
+    background:var(--card); color:var(--muted); text-align:center; transition:all .15s ease;
+  }
+  .cat-tab.active{background:var(--red); color:var(--sand);}
 
-    .btn-red {
-      background: var(--primary-red);
-      color: white;
-      transition: all 0.3s ease;
-    }
+  .subcat-row{display:flex; gap:8px; overflow-x:auto; padding:12px 16px 4px; scrollbar-width:none;}
+  .subcat-row::-webkit-scrollbar{display:none;}
+  .subcat-chip{
+    flex-shrink:0; padding:8px 16px; border-radius:999px; border:1.5px solid var(--card2);
+    background:transparent; color:var(--sand); font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap;
+  }
+  .subcat-chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink);}
 
-    .btn-red:hover {
-      background: var(--dark-red);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
-    }
+  .popular-wrap{padding:16px 16px 4px;}
+  .popular-label{font-size:0.72rem; font-weight:800; letter-spacing:1.5px; color:var(--gold); margin-bottom:8px;}
+  .popular-scroll{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px;}
+  .popular-scroll::-webkit-scrollbar{display:none;}
+  .pop-chip{
+    flex-shrink:0; width:112px; background:var(--card); border-radius:14px; padding:10px; cursor:pointer;
+    text-align:center; border:1px solid rgba(243,232,216,0.06);
+  }
+  .pop-chip .avatar{width:40px;height:40px; margin:0 auto 6px;}
+  .pop-chip .name{font-size:0.72rem; font-weight:700; line-height:1.2; color:var(--sand); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .pop-chip .rating{font-size:0.68rem; color:var(--gold); font-weight:700; margin-top:2px;}
 
-    .btn-yellow {
-      background: var(--primary-yellow);
-      color: var(--dark-red);
-      font-weight: 700;
-      transition: all 0.3s ease;
-    }
+  .stall-list{padding:16px;}
+  .stall-card{
+    background:var(--card); border-radius:18px; margin-bottom:18px; overflow:hidden;
+    border:1px solid rgba(243,232,216,0.06);
+  }
+  .stall-roof{
+    height:10px;
+    background:repeating-linear-gradient(45deg, var(--red) 0 10px, var(--gold) 10px 20px);
+  }
+  .stall-header{display:flex; gap:12px; align-items:flex-start; padding:14px 16px 10px;}
+  .avatar{
+    width:52px; height:52px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Alfa Slab One'; font-size:1.05rem; color:var(--ink);
+    object-fit:cover;
+  }
+  .stall-eyebrow{font-size:0.64rem; font-weight:800; letter-spacing:1px; color:var(--gold); margin-bottom:2px;}
+  .stall-name{font-weight:800; font-size:1.05rem; color:var(--sand); line-height:1.25;}
+  .stall-meta{display:flex; align-items:center; flex-wrap:wrap; gap:5px; font-size:0.78rem; color:var(--muted); margin-top:4px; font-weight:600;}
+  .stall-meta svg{width:13px;height:13px;}
+  .stall-meta .star{color:var(--gold);}
+  .verify-row{display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:0.68rem; color:var(--green); font-weight:700; margin-top:6px;}
+  .verify-row svg{width:12px;height:12px;}
 
-    .btn-yellow:hover {
-      background: #F59E0B;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(251, 191, 36, 0.4);
-    }
+  .gallery-strip{display:flex; gap:8px; overflow-x:auto; padding:2px 16px 14px; scrollbar-width:none;}
+  .gallery-strip::-webkit-scrollbar{display:none;}
+  .gallery-item{flex-shrink:0; width:118px;}
+  .gallery-item img, .gallery-item video{width:118px; height:88px; object-fit:cover; border-radius:10px; display:block; background:var(--card2);}
+  .gallery-caption{font-size:0.66rem; color:var(--muted); margin-top:4px; line-height:1.25;}
 
-    .product-card {
-      border: 3px solid transparent;
-      background: white;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
+  .item-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:12px 16px; border-top:1px solid rgba(243,232,216,0.06);
+  }
+  .item-name{font-weight:700; font-size:0.96rem; color:var(--sand);}
+  .item-desc{font-size:0.78rem; color:var(--muted); margin-top:2px;}
+  .item-action{display:flex; align-items:center; gap:10px; flex-shrink:0;}
 
-    .product-card:hover {
-      border-color: var(--primary-red);
-      transform: translateY(-6px);
-      box-shadow: 0 12px 24px rgba(220, 38, 38, 0.2);
-    }
+  .price-tag{
+    font-family:'Caveat',cursive; font-weight:700; font-size:1.35rem; color:var(--ink);
+    background:var(--gold); padding:2px 13px 5px; border-radius:3px 13px 3px 13px;
+    position:relative; box-shadow:1px 3px 4px rgba(0,0,0,0.35); display:inline-block;
+  }
+  .price-tag::before{
+    content:''; position:absolute; top:-4px; left:9px; width:6px; height:6px;
+    border-radius:50%; background:var(--ink); border:1px solid var(--muted);
+  }
+  .item-row:nth-child(odd) .price-tag{transform:rotate(-3deg);}
+  .item-row:nth-child(even) .price-tag{transform:rotate(2deg);}
 
-    .icon-large {
-      font-size: 4rem;
-      line-height: 1;
-    }
+  .add-btn{
+    width:34px; height:34px; border-radius:50%; border:none; background:var(--red); color:var(--sand);
+    font-size:1.3rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;
+  }
+  .add-btn:active{background:var(--red-dark);}
+  .qty-btn{
+    width:28px; height:28px; border-radius:50%; border:1.5px solid var(--gold); background:transparent; color:var(--gold);
+    font-size:1.05rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;
+  }
 
-    .cart-badge {
-      background: var(--primary-red);
-      color: white;
-      border-radius: 50%;
-      min-width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.875rem;
-    }
+  .placeholder{text-align:center; padding:70px 24px; color:var(--muted);}
+  .placeholder svg{width:56px;height:56px; margin:0 auto 14px; opacity:0.6;}
+  .placeholder h3{color:var(--sand); font-size:1.15rem; margin:0 0 6px;}
 
-    .floating-btn {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 40;
-      border-radius: 50%;
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-      font-size: 2.5rem;
-      animation: pulse 2s infinite;
-    }
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:40;
+    background:var(--card); border-top:1px solid rgba(243,232,216,0.08);
+    display:flex; padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  }
+  .nav-btn{
+    flex:1; background:none; border:none; color:var(--muted); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; position:relative;
+  }
+  .nav-btn.active{color:var(--gold);}
+  .nav-btn span{font-size:0.66rem; font-weight:700;}
+  .nav-cart-badge{
+    position:absolute; top:0; right:22%; background:var(--red); color:var(--sand);
+    font-size:0.6rem; font-weight:800; min-width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50;}
+  .sheet{
+    position:fixed; inset:0; z-index:51; display:flex; flex-direction:column;
+    background:var(--ink);
+  }
+  .sheet-header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 16px; border-bottom:1px solid rgba(243,232,216,0.08);
+  }
+  .sheet-header h2{font-family:'Alfa Slab One'; font-size:1.2rem; margin:0; letter-spacing:0.5px;}
+  .close-x{background:none; border:none; color:var(--sand); font-size:1.6rem; cursor:pointer; line-height:1;}
+  .sheet-body{flex:1; overflow-y:auto; padding:16px;}
 
-    .zone-tab {
-      padding: 12px 20px;
-      font-size: 1.125rem;
-      font-weight: 700;
-      border: 3px solid transparent;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
+  .delivery-note{
+    display:flex; gap:12px; background:var(--card); border:1px solid rgba(245,180,0,0.25);
+    border-radius:14px; padding:14px; margin-bottom:16px;
+  }
+  .delivery-note svg{width:26px;height:26px; color:var(--gold); flex-shrink:0; margin-top:2px;}
+  .delivery-note p{margin:0; font-size:0.85rem; line-height:1.4;}
+  .delivery-note .dn-title{font-weight:800; color:var(--sand); margin-bottom:3px;}
+  .delivery-note .dn-body{color:var(--muted);}
 
-    .zone-tab.active {
-      background: var(--primary-red);
-      color: white;
-      border-color: var(--primary-red);
-    }
+  .cart-line-card{
+    background:var(--card); border-radius:14px; padding:13px; margin-bottom:10px;
+    border-left:4px solid var(--red);
+  }
+  .cart-line-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .cart-line-vendor{font-size:0.72rem; color:var(--muted); font-weight:600; margin-top:2px;}
 
-    .zone-tab:not(.active) {
-      background: white;
-      color: var(--primary-red);
-      border-color: var(--primary-yellow);
-    }
+  .summary-box{background:var(--card); border-radius:14px; padding:16px; margin-top:6px;}
+  .summary-row{display:flex; justify-content:space-between; font-size:0.92rem; font-weight:600; padding:6px 0;}
+  .summary-row.total{border-top:1px solid rgba(243,232,216,0.12); margin-top:6px; padding-top:12px; font-size:1.05rem; font-weight:800; color:var(--gold);}
 
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 40;
-    }
+  .btn-primary{
+    width:100%; padding:16px; border-radius:14px; border:none; background:var(--red); color:var(--sand);
+    font-family:'Alfa Slab One'; font-size:1.02rem; letter-spacing:0.3px; cursor:pointer; margin-top:14px;
+  }
+  .btn-secondary{
+    width:100%; padding:13px; border-radius:14px; border:1.5px solid var(--card2); background:transparent; color:var(--sand);
+    font-weight:700; font-size:0.92rem; cursor:pointer; margin-top:10px;
+  }
+  .btn-link-alt{
+    width:100%; background:none; border:none; color:var(--gold); font-weight:700; font-size:0.85rem;
+    text-decoration:underline; padding:10px; cursor:pointer;
+  }
 
-    .modal-panel {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      background: white;
-    }
+  .pay-option{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+    background:var(--card2); border:1px solid rgba(243,232,216,0.08); border-radius:14px;
+    padding:14px; margin-bottom:10px; cursor:pointer;
+  }
+  .pay-option .pay-icon{width:40px;height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .pay-option .pay-name{font-weight:800; font-size:0.95rem; color:var(--sand);}
+  .pay-option .pay-sub{font-size:0.74rem; color:var(--muted); margin-top:2px;}
 
-    .cart-item-card {
-      background: white;
-      border-left: 4px solid var(--primary-red);
-      padding: 16px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
+  .empty-state svg{width:52px;height:52px; margin:0 auto 12px; opacity:0.5;}
 
-    .quantity-btn {
-      background: var(--light-yellow);
-      border: 2px solid var(--primary-red);
-      color: var(--primary-red);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 1.25rem;
-      transition: all 0.2s ease;
-    }
-
-    .quantity-btn:hover {
-      background: var(--primary-red);
-      color: white;
-    }
-
-    .area-select {
-      width: 100%;
-      padding: 14px;
-      border: 2px solid var(--primary-yellow);
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--primary-red);
-      background: white;
-      cursor: pointer;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 48px 24px;
-      color: #9CA3AF;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-  </style>
+  .confirm-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 24px; text-align:center;}
+  .confirm-check{width:88px; height:88px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+  .confirm-check svg{width:46px;height:46px; color:var(--sand);}
+  .order-id-box{background:var(--card); border-radius:14px; padding:16px; width:100%; margin:18px 0;}
+  .rider-card{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px; padding:14px; width:100%; margin-top:14px;}
+  .verify-check svg{width:14px;height:14px; color:var(--green); vertical-align:-2px;}
+</style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header-red text-white sticky top-0 z-40 shadow-2xl">
-    <div class="px-4 py-4">
-      <div class="flex items-center justify-between mb-4">
-        <h1 class="text-3xl font-black">🍗 TONNINYIRA</h1>
-        <button id="cartBtn" class="relative bg-white bg-opacity-20 px-3 py-2 rounded-lg">
-          🛒
-          <span id="cartCount" class="cart-badge absolute -top-2 -right-2">0</span>
-        </button>
-      </div>
-      <p class="text-base font-bold text-yellow-200 mb-4">📦 Food & Market Stuff Fast!</p>
+<header>
+  <div class="brand-row">
+    <div class="brand-lockup">
+      <div class="brand-badge" id="brandBadge"></div>
       <div>
-        <label class="text-sm font-bold text-yellow-200 block mb-2">📍 Where Are You?</label>
-        <select id="areaSelect" class="area-select">
-          <option value="kisugu">Kisugu - 1,000 UGX</option>
-          <option value="kansanga">Kansanga - 1,000 UGX</option>
-          <option value="ggaba">Ggaba - 1,500 UGX</option>
-          <option value="namwongo">Namwongo - 1,000 UGX</option>
-          <option value="entebbe">Entebbe - 3,000 UGX</option>
-          <option value="kasangati">Kasangati - 3,000 UGX</option>
-          <option value="jinja">Jinja - 5,000 UGX</option>
-        </select>
+        <div class="brand-name display">TONNINYIRA</div>
+        <div class="brand-tag">LOCAL VENDORS · REAL PRICES · YOUR DOOR</div>
       </div>
     </div>
-  </header>
-
-  <!-- ZONE TABS -->
-  <div class="sticky top-24 z-30 bg-white shadow-md px-4 py-4 border-b-4 border-yellow-300">
-    <div class="flex gap-2 overflow-x-auto pb-2">
-      <button class="zone-tab active" data-zone="meals">🍽️ MEALS</button>
-      <button class="zone-tab" data-zone="snacks">🍔 SNACKS</button>
-      <button class="zone-tab" data-zone="stuff">🛍️ STUFF</button>
-    </div>
+    <button class="icon-btn" id="cartIconBtn" aria-label="Cart">
+      <span id="cartIconSvg"></span>
+      <span class="badge hidden" id="cartCount">0</span>
+    </button>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <main class="pb-32 px-4">
-    <section id="mealsZone" class="zone-content active py-4">
-      <h2 class="text-2xl font-black text-red-700 mb-4">🍲 READY TO EAT</h2>
-      <div id="mealsGrid" class="grid grid-cols-2 gap-4"></div>
-    </section>
+  <div class="location-row">
+    <span id="pinIconSvg"></span>
+    <select id="areaSelect">
+      <option>Kisugu</option><option>Kansanga</option><option>Ggaba</option>
+      <option>Namwongo</option><option>Entebbe</option><option>Kasangati</option><option>Jinja</option>
+    </select>
+  </div>
 
-    <section id="snacksZone" class="zone-content hidden py-4">
-      <h2 class="text-2xl font-black text-red-700 mb-4">🍩 QUICK BITES</h2>
-      <div id="snacksGrid" class="grid grid-cols-2 gap-4"></div>
-    </section>
+  <div class="search-row">
+    <span id="searchIconSvg"></span>
+    <input type="text" id="searchInput" placeholder="Search vendors or items...">
+  </div>
+</header>
 
-    <section id="stuffZone" class="zone-content hidden py-4">
-      <h2 class="text-2xl font-black text-red-700 mb-4">🛒 SHOP THINGS</h2>
-      <div id="stuffGrid" class="grid grid-cols-2 gap-4"></div>
-    </section>
-  </main>
+<div id="catTabs" class="cat-tabs"></div>
+<div id="subcatRow" class="subcat-row"></div>
+<div id="popularWrap" class="popular-wrap"></div>
+<main id="mainArea"></main>
 
-  <!-- FLOATING CART BUTTON -->
-  <button id="floatingCartBtn" class="floating-btn btn-red hidden">🛒</button>
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="navHome" onclick="goView('shop')"><span id="navHomeIcon"></span><span>Home</span></button>
+  <button class="nav-btn" id="navOrders" onclick="goView('orders')"><span id="navOrdersIcon"></span><span>Orders</span></button>
+  <button class="nav-btn" onclick="openCart()">
+    <span id="navCartIcon"></span><span>Cart</span>
+    <span class="nav-cart-badge hidden" id="navCartBadge">0</span>
+  </button>
+  <button class="nav-btn" id="navProfile" onclick="goView('profile')"><span id="navProfileIcon"></span><span>Profile</span></button>
+</nav>
 
-  <!-- CART PANEL -->
-  <div id="cartOverlay" class="overlay hidden"></div>
-  <div id="cartPanel" class="modal-panel hidden">
-    <div class="header-red text-white p-6 flex justify-between items-center">
-      <h2 class="text-2xl font-black">🛒 YOUR BASKET</h2>
-      <button id="closeCartBtn" class="text-4xl font-black">✕</button>
+<div id="cartOverlay" class="overlay hidden" onclick="closeCart()"></div>
+<div id="cartSheet" class="sheet hidden">
+  <div class="sheet-header"><h2>Your Basket</h2><button class="close-x" onclick="closeCart()">&times;</button></div>
+  <div class="sheet-body" id="cartBody"></div>
+</div>
+
+<div id="confirmOverlay" class="overlay hidden"></div>
+<div id="confirmSheet" class="sheet hidden">
+  <div class="confirm-wrap">
+    <div class="confirm-check" id="confirmCheckIcon"></div>
+    <h2 class="display" style="font-size:1.3rem; margin:0;">Order Placed</h2>
+    <p style="color:var(--muted); margin-top:8px;">Your vendor is preparing it now.</p>
+    <div class="order-id-box">
+      <p style="font-size:0.75rem; color:var(--muted); margin:0 0 4px; font-weight:700;">ORDER NUMBER</p>
+      <p class="display" style="font-size:1.5rem; color:var(--gold); margin:0;" id="confirmOrderId"></p>
     </div>
-
-    <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-4">
-      <div class="empty-state">
-        <div class="text-5xl mb-2">🛒</div>
-        <p class="text-lg font-bold">Empty basket</p>
+    <div id="confirmSummary" style="width:100%;"></div>
+    <div id="confirmRider" style="width:100%;"></div>
+    <div class="delivery-note" style="text-align:left; margin-top:16px;">
+      <span id="confirmMotoIcon"></span>
+      <div>
+        <p class="dn-title">Your rider will call to confirm the delivery fee</p>
+        <p class="dn-body">Tonninyira doesn't set this — it depends on distance from the vendor to your door.</p>
       </div>
     </div>
-
-    <div class="border-t-4 border-yellow-300 p-6 space-y-4">
-      <h3 class="text-lg font-black text-red-700">⚡ SPEED</h3>
-      <label class="flex items-center gap-3 p-3 border-2 border-orange-300 rounded-lg cursor-pointer bg-yellow-50">
-        <input type="radio" name="deliveryOption" value="standard" checked onchange="updateDelivery()">
-        <div>
-          <p class="font-black text-gray-900">Normal - 30-45 min</p>
-          <p id="standardFeeDisplay" class="text-sm font-bold text-red-600">+1,000 UGX</p>
-        </div>
-      </label>
-      <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer">
-        <input type="radio" name="deliveryOption" value="express" onchange="updateDelivery()">
-        <div>
-          <p class="font-black text-gray-900">FAST - 15-20 min</p>
-          <p class="text-sm font-bold text-red-600">+3,000 UGX</p>
-        </div>
-      </label>
-    </div>
-
-    <div class="border-t-4 border-yellow-300 p-6 bg-yellow-50">
-      <h3 class="text-lg font-black text-red-700 mb-4">📊 TOTAL</h3>
-      <div class="space-y-3">
-        <div class="flex justify-between font-black">
-          <span>Items:</span>
-          <span id="summaryItems">UGX 0</span>
-        </div>
-        <div class="flex justify-between font-black">
-          <span>Delivery:</span>
-          <span id="summaryDelivery">UGX 0</span>
-        </div>
-        <div class="flex justify-between font-black text-lg border-t-4 border-b-4 border-yellow-300 py-3 text-red-700">
-          <span>YOU PAY:</span>
-          <span id="summaryTotal">UGX 0</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="border-t-4 border-yellow-300 p-6 space-y-3">
-      <button id="checkoutBtn" class="btn-red w-full py-4 rounded-xl text-2xl font-black">✅ PAY NOW</button>
-      <button id="continueShoppingBtn" class="btn-yellow w-full py-3 rounded-xl text-lg font-black">← KEEP SHOPPING</button>
-    </div>
   </div>
+  <div style="padding:16px;"><button class="btn-primary" onclick="resetApp()">Back to Tonninyira</button></div>
+</div>
 
-  <!-- PAYMENT MODAL -->
-  <div id="paymentOverlay" class="overlay hidden"></div>
-  <div id="paymentModal" class="modal-panel hidden">
-    <div class="header-red text-white p-6">
-      <h2 class="text-2xl font-black">💳 HOW TO PAY</h2>
-    </div>
-    <div class="flex-1 p-6 space-y-4 overflow-y-auto">
-      <button class="payment-option w-full" data-method="mtn">
-        <div class="p-6 bg-yellow-50 rounded-xl border-4 border-yellow-300 text-center">
-          <div class="text-4xl mb-2">📱</div>
-          <p class="font-black text-lg text-gray-900">MTN MoMo</p>
-        </div>
-      </button>
-      <button class="payment-option w-full" data-method="airtel">
-        <div class="p-6 bg-red-50 rounded-xl border-4 border-red-300 text-center">
-          <div class="text-4xl mb-2">📱</div>
-          <p class="font-black text-lg text-gray-900">Airtel Money</p>
-        </div>
-      </button>
-      <button class="payment-option w-full" data-method="cash">
-        <div class="p-6 bg-green-50 rounded-xl border-4 border-green-300 text-center">
-          <div class="text-4xl mb-2">💵</div>
-          <p class="font-black text-lg text-gray-900">Cash on Delivery</p>
-        </div>
-      </button>
-    </div>
-    <div class="border-t-4 border-yellow-300 p-6">
-      <button id="closePaymentBtn" class="btn-yellow w-full py-3 rounded-xl text-lg font-black">✕ CANCEL</button>
-    </div>
-  </div>
+<script>
+const ICONS = {
+  search: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  cart: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`,
+  pin: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  star: `<svg class="icon star" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  moto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18h9l3-6h3M14 12l-2-5H8l-2 5"/></svg>`,
+  home: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5l9-7 9 7V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>`,
+  receipt: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>`,
+  user: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+  emptyCart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`,
+  box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
+};
+document.getElementById('cartIconSvg').innerHTML = ICONS.cart;
+document.getElementById('pinIconSvg').innerHTML = ICONS.pin;
+document.getElementById('searchIconSvg').innerHTML = ICONS.search;
+document.getElementById('navHomeIcon').innerHTML = ICONS.home;
+document.getElementById('navOrdersIcon').innerHTML = ICONS.receipt;
+document.getElementById('navCartIcon').innerHTML = ICONS.cart;
+document.getElementById('navProfileIcon').innerHTML = ICONS.user;
+document.getElementById('confirmCheckIcon').innerHTML = ICONS.check;
+document.getElementById('confirmMotoIcon').innerHTML = ICONS.moto;
+document.getElementById('brandBadge').innerHTML = `
+  <svg viewBox="0 0 200 200" width="30" height="30">
+    <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
+    <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
+    <g transform="rotate(-10 148 70)">
+      <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
+      <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
+      <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
+      <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
+      <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
+      <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
+    </g>
+  </svg>`;
 
-  <!-- CONFIRMATION MODAL -->
-  <div id="confirmationOverlay" class="overlay hidden"></div>
-  <div id="confirmationModal" class="modal-panel hidden">
-    <div class="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-green-50 to-white">
-      <div class="text-8xl mb-4">✅</div>
-      <h2 class="text-3xl font-black text-green-700 mb-2">YES! DONE!</h2>
-      <p class="text-lg text-gray-700 mb-6">Your food is being made 👨‍🍳</p>
-      <div class="bg-yellow-50 rounded-xl border-4 border-yellow-300 p-6 w-full mb-6">
-        <p class="text-sm text-gray-600 font-bold mb-1">Order:</p>
-        <p id="confirmationOrderId" class="text-3xl font-black text-red-700 text-center">ORD-12345</p>
-      </div>
-      <div id="confirmationSummary" class="w-full mb-6"></div>
-      <p class="text-center text-sm text-gray-600 mb-6">🚴 Driver coming in ~30 minutes</p>
-    </div>
-    <div class="border-t-4 border-yellow-300 p-6">
-      <button id="confirmationCloseBtn" class="btn-red w-full py-4 rounded-xl text-xl font-black">🏠 BACK HOME</button>
-    </div>
-  </div>
+const CATALOG = {
+  eats: { label:"Eats", subs: {
+    breakfast: { label:"Breakfast", vendors:[
+      { id:"v1", name:"Mama Rose's Corner", location:"Kisugu", rating:4.8, reviews:342, years:8, items:[
+        {id:"b1", name:"Rolex", desc:"Egg, tomato & onion in chapati", price:2500},
+        {id:"b2", name:"Mandazi (6 pcs)", desc:"Soft sugar-fried bread", price:2000},
+        {id:"b3", name:"Chapati (2 pcs)", desc:"Fresh off the pan", price:1500},
+        {id:"b4", name:"Milk Tea + Mandazi", desc:"Chai with 2 mandazi", price:2000},
+      ]},
+      { id:"v2", name:"Uncle Fred's Breakfast", location:"Kansanga", rating:4.9, reviews:521, years:15, items:[
+        {id:"b5", name:"Rolex Deluxe", desc:"Double egg, cheese, sausage", price:3800},
+        {id:"b6", name:"Beans on Toast", desc:"Stewed beans, 2 slices toast", price:2500},
+        {id:"b7", name:"Pancakes (4)", desc:"Fried, lightly sweet", price:2000},
+        {id:"b8", name:"Boiled Eggs (3)", desc:"Fresh farm eggs", price:1500},
+      ]},
+    ]},
+    lunch: { label:"Lunch", vendors:[
+      { id:"v3", name:"Fatima's Kitchen", location:"Ggaba", rating:4.9, reviews:612, years:12, items:[
+        {id:"l1", name:"Posho & Beans", desc:"Classic hot lunch plate", price:3500},
+        {id:"l2", name:"Rice & Beef Stew", desc:"With carrots & potatoes", price:4800},
+        {id:"l3", name:"Matoke & Fish", desc:"Steamed plantain, fried fish", price:6500},
+        {id:"l4", name:"Ugali & Sukuma", desc:"With greens & groundnut sauce", price:3000},
+      ]},
+      { id:"v4", name:"Sylvia's Homestyle", location:"Namwongo", rating:4.7, reviews:289, years:6, items:[
+        {id:"l5", name:"Chapati & Beef Curry", desc:"2 chapatis, rich sauce", price:3800},
+        {id:"l6", name:"Chicken & Rice", desc:"Half chicken, seasoned rice", price:5500},
+        {id:"l7", name:"Kikomando", desc:"Chapati & bean mix", price:3000},
+        {id:"l8", name:"Groundnut Stew & Posho", desc:"Peanut sauce, greens", price:3500},
+      ]},
+    ]},
+    fastfoods: { label:"Fast Foods", vendors:[
+      { id:"v5", name:"Grace's Grill", location:"Kisugu Market", rating:4.8, reviews:334, years:10, items:[
+        {id:"f1", name:"Fried Chicken (6 pcs)", desc:"Crispy, spiced", price:6000},
+        {id:"f2", name:"Chips & Sausage", desc:"Fries + grilled sausage", price:4000},
+        {id:"f3", name:"Fish Fry (2 pcs)", desc:"Tilapia, deep fried", price:6500},
+        {id:"f4", name:"Chicken & Chips Combo", desc:"2 pcs chicken + fries", price:6500},
+      ]},
+      { id:"v6", name:"John's Quick Bites", location:"Namwongo Roadside", rating:4.6, reviews:178, years:4, items:[
+        {id:"f5", name:"Samosa Pack (5)", desc:"Minced beef filling", price:2500},
+        {id:"f6", name:"Beef Skewers (3)", desc:"Grilled over charcoal", price:5000},
+        {id:"f7", name:"Spring Rolls (4)", desc:"Vegetable filling", price:3000},
+        {id:"f8", name:"Cabbage Rolls (3)", desc:"Lightly fried", price:2000},
+      ]},
+    ]},
+  }},
+  shop: { label:"Shop", subs: {
+    groceries: { label:"Groceries", vendors:[
+      { id:"v7", name:"Owino Grains Corner", location:"Owino Market", rating:4.6, reviews:756, years:18, items:[
+        {id:"g1", name:"Posho (1kg)", desc:"Fine white maize flour", price:3500},
+        {id:"g2", name:"Dry Beans (2kg)", desc:"Sorted, clean", price:6000},
+        {id:"g3", name:"Cooking Oil (1L)", desc:"Vegetable oil", price:5000},
+        {id:"g4", name:"Sugar (1kg)", desc:"Fine white sugar", price:4500},
+      ]},
+      { id:"v8", name:"Kisugu Fresh Mart", location:"Kisugu", rating:4.5, reviews:298, years:9, items:[
+        {id:"g5", name:"Rice (2kg)", desc:"Long grain", price:8000},
+        {id:"g6", name:"Salt (500g)", desc:"Iodized", price:1000},
+        {id:"g7", name:"Tea Leaves (250g)", desc:"Local blend", price:3500},
+        {id:"g8", name:"Bar Soap (3 pcs)", desc:"Laundry soap", price:4000},
+      ]},
+    ]},
+    rawfoods: { label:"Raw Foods", vendors:[
+      { id:"v9", name:"Owino Fresh Produce", location:"Owino Market", rating:4.5, reviews:892, years:20, items:[
+        {id:"r1", name:"Tomatoes (heap)", desc:"30+ pieces", price:4000},
+        {id:"r2", name:"Onions (bunch)", desc:"5-6 large bulbs", price:2500},
+        {id:"r3", name:"Sukuma Wiki", desc:"Fresh greens, bundle", price:2000},
+        {id:"r4", name:"Irish Potatoes (5kg)", desc:"Farm fresh", price:9000},
+      ]},
+      { id:"v10", name:"Ggaba Fish Landing", location:"Ggaba", rating:4.7, reviews:410, years:14, items:[
+        {id:"r5", name:"Fresh Tilapia (1kg)", desc:"Whole fish", price:12000},
+        {id:"r6", name:"Nile Perch (1kg)", desc:"Fillet cut", price:15000},
+        {id:"r7", name:"Mukene (500g)", desc:"Dried silver fish", price:5000},
+        {id:"r8", name:"Smoked Fish", desc:"Whole, smoked", price:8000},
+      ]},
+    ]},
+    mivumba: { label:"Mivumba", vendors:[
+      { id:"v11", name:"Bwaise Bale Traders", location:"Bwaise", rating:4.4, reviews:203, years:7, items:[
+        {id:"m1", name:"Men's Shirts Bundle", desc:"Assorted, 20 pieces", price:60000},
+        {id:"m2", name:"Kids Wear Bundle", desc:"Mixed sizes, 25 pieces", price:45000},
+        {id:"m3", name:"Jeans Bundle", desc:"Assorted, 15 pairs", price:90000},
+        {id:"m4", name:"Ladies Tops Bundle", desc:"Assorted, 20 pieces", price:55000},
+      ]},
+      { id:"v12", name:"Owino Bale Corner", location:"Owino Market", rating:4.5, reviews:267, years:11, items:[
+        {id:"m5", name:"Ladies Dresses Bundle", desc:"Assorted, 15 pieces", price:70000},
+        {id:"m6", name:"Men's Trousers Bundle", desc:"Assorted, 12 pairs", price:80000},
+        {id:"m7", name:"Baby Clothes Bundle", desc:"0-2 yrs, 30 pieces", price:40000},
+        {id:"m8", name:"Sweaters Bundle", desc:"Assorted, 15 pieces", price:65000},
+      ]},
+    ]},
+    secondhand: { label:"Second-Hand", vendors:[
+      { id:"v13", name:"Kampala Kicks", location:"Kisugu", rating:4.6, reviews:189, years:5, items:[
+        {id:"sh1", name:"Nike Sneakers", desc:"Size 42, good condition", price:35000},
+        {id:"sh2", name:"Leather Loafers", desc:"Size 43", price:25000},
+        {id:"sh3", name:"Kids Shoes", desc:"Assorted sizes", price:15000},
+        {id:"sh4", name:"Running Shoes", desc:"Size 41", price:30000},
+      ]},
+      { id:"v14", name:"Vintage Corner", location:"Owino Market", rating:4.5, reviews:156, years:8, items:[
+        {id:"sh5", name:"Leather Handbag", desc:"Genuine leather", price:40000},
+        {id:"sh6", name:"Denim Jacket", desc:"Medium size", price:35000},
+        {id:"sh7", name:"Formal Shirt", desc:"Size L", price:15000},
+        {id:"sh8", name:"Backpack", desc:"Good condition", price:20000},
+      ]},
+    ]},
+  }},
+};
 
-  <script>
-    // STATE
-    const AppState = {
-      cart: [],
-      selectedZone: 'meals',
-      selectedArea: 'kisugu',
-      deliveryOption: 'standard',
-      
-      deliveryFees: {
-        kisugu: 1000, kansanga: 1000, ggaba: 1500, namwongo: 1000,
-        entebbe: 3000, kasangati: 3000, jinja: 5000,
-      },
+const SAMPLE_RIDERS = [
+  {tid:'TN-RD-00142', name:'Moses K.', vehicle:'Boda-boda · UEB 245K', rating:4.9},
+  {tid:'TN-RD-00098', name:'Grace N.', vehicle:'Boda-boda · UEC 512M', rating:4.8},
+  {tid:'TN-RD-00211', name:'Ibrahim S.', vehicle:'Boda-boda · UED 763P', rating:4.95},
+];
 
-      products: {
-        meals: [
-          { id: 'm1', name: 'Rice & Stew', desc: 'With meat', price: 4000, icon: '🍚' },
-          { id: 'm2', name: 'Posho & Beans', desc: 'Hot meal', price: 3500, icon: '🍲' },
-          { id: 'm3', name: 'Fried Chicken', desc: '5-6 pieces', price: 5000, icon: '🍗' },
-          { id: 'm4', name: 'Chapati & Curry', desc: '2 chapatis', price: 3500, icon: '🫓' },
-          { id: 'm5', name: 'Chicken Soup', desc: 'With rice', price: 4500, icon: '🍲' },
-          { id: 'm6', name: 'Matoke & Fish', desc: 'Steamed', price: 6000, icon: '🍌' },
-          { id: 'm7', name: 'Beef Skewers', desc: '3-4 sticks', price: 5500, icon: '🍢' },
-          { id: 'm8', name: 'Ugali & Veg', desc: 'With sukuma', price: 3000, icon: '🥔' },
-        ],
-        snacks: [
-          { id: 's1', name: 'Rolex', desc: 'Egg in chapati', price: 2000, icon: '🌯' },
-          { id: 's2', name: 'Mandazi Pack', desc: '6 pieces', price: 2000, icon: '🍩' },
-          { id: 's3', name: 'Beans on Toast', desc: 'With toast', price: 2500, icon: '🍞' },
-          { id: 's4', name: 'Samosa Pack', desc: '5 pieces', price: 2500, icon: '🥟' },
-          { id: 's5', name: 'Spring Rolls', desc: '4 pieces', price: 3000, icon: '🥠' },
-          { id: 's6', name: 'Doughnut Pack', desc: '5 pieces', price: 2500, icon: '🍩' },
-        ],
-        stuff: [
-          { id: 't1', name: 'Fresh Posho', desc: '1kg', price: 3500, icon: '🌽' },
-          { id: 't2', name: 'Dry Beans', desc: '2kg', price: 6000, icon: '🫘' },
-          { id: 't3', name: 'Tomatoes', desc: 'Heap', price: 4000, icon: '🍅' },
-          { id: 't4', name: 'Cooking Oil', desc: '1L', price: 5000, icon: '🫗' },
-          { id: 't5', name: 'Eggs (15)', desc: 'Fresh', price: 7000, icon: '🥚' },
-          { id: 't6', name: 'Sugar', desc: '500g', price: 3000, icon: '🍬' },
-          { id: 't7', name: 'Denim Jeans', desc: 'Good quality', price: 7500, icon: '👖' },
-          { id: 't8', name: 'Sports Shoes', desc: 'Good condition', price: 10000, icon: '👟' },
-        ],
-      },
-    };
+const AppState = { category:"eats", subcategory:"breakfast", view:"shop", searchTerm:"", cart:[] };
+const AVATAR_COLORS = ['#E23F25','#F5B400','#4C9A5B','#C98F00','#B92E18'];
 
-    // DOM
-    const DOM = {
-      areaSelect: document.getElementById('areaSelect'),
-      cartBtn: document.getElementById('cartBtn'),
-      cartCount: document.getElementById('cartCount'),
-      zoneTabs: document.querySelectorAll('.zone-tab'),
-      zoneContents: document.querySelectorAll('.zone-content'),
-      mealsGrid: document.getElementById('mealsGrid'),
-      snacksGrid: document.getElementById('snacksGrid'),
-      stuffGrid: document.getElementById('stuffGrid'),
-      cartPanel: document.getElementById('cartPanel'),
-      cartOverlay: document.getElementById('cartOverlay'),
-      closeCartBtn: document.getElementById('closeCartBtn'),
-      cartItemsList: document.getElementById('cartItemsList'),
-      floatingCartBtn: document.getElementById('floatingCartBtn'),
-      summaryItems: document.getElementById('summaryItems'),
-      summaryDelivery: document.getElementById('summaryDelivery'),
-      summaryTotal: document.getElementById('summaryTotal'),
-      standardFeeDisplay: document.getElementById('standardFeeDisplay'),
-      checkoutBtn: document.getElementById('checkoutBtn'),
-      continueShoppingBtn: document.getElementById('continueShoppingBtn'),
-      paymentModal: document.getElementById('paymentModal'),
-      paymentOverlay: document.getElementById('paymentOverlay'),
-      closePaymentBtn: document.getElementById('closePaymentBtn'),
-      paymentOptions: document.querySelectorAll('.payment-option'),
-      confirmationModal: document.getElementById('confirmationModal'),
-      confirmationOverlay: document.getElementById('confirmationOverlay'),
-      confirmationOrderId: document.getElementById('confirmationOrderId'),
-      confirmationSummary: document.getElementById('confirmationSummary'),
-      confirmationCloseBtn: document.getElementById('confirmationCloseBtn'),
-    };
+function initials(name){
+  const words = name.replace(/'s\b/i,'').split(' ').filter(w=>w.length>1);
+  return ((words[0]||'')[0]||'') + ((words[1]||'')[0]||'');
+}
+function avatarColor(name){
+  let hash=0; for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+  return AVATAR_COLORS[Math.abs(hash)%AVATAR_COLORS.length];
+}
+function fmt(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 
-    // INIT
-    function init() {
-      renderProducts();
-      setupEvents();
-      updateDisplay();
+function findVendor(vendorId){
+  for(const catKey in CATALOG){
+    for(const subKey in CATALOG[catKey].subs){
+      const v = CATALOG[catKey].subs[subKey].vendors.find(v=>v.id===vendorId);
+      if(v) return v;
     }
+  }
+  return null;
+}
+function allVendorsFlat(){
+  let flat=[];
+  Object.entries(CATALOG).forEach(([catKey,cat])=>{
+    Object.entries(cat.subs).forEach(([subKey,sub])=>{
+      sub.vendors.forEach(v=>flat.push({...v, catKey, subKey}));
+    });
+  });
+  return flat;
+}
+function stallNumberFor(vendorId){
+  const idx = allVendorsFlat().findIndex(v=>v.id===vendorId);
+  return idx>=0 ? idx+1 : '—';
+}
 
-    // RENDER PRODUCTS
-    function renderProducts() {
-      ['meals', 'snacks', 'stuff'].forEach(zone => {
-        const grid = zone === 'meals' ? DOM.mealsGrid : zone === 'snacks' ? DOM.snacksGrid : DOM.stuffGrid;
-        grid.innerHTML = AppState.products[zone].map(p => `
-          <div class="product-card rounded-xl shadow-md p-4 flex flex-col items-center text-center">
-            <div class="icon-large mb-3">${p.icon}</div>
-            <h3 class="font-black text-base text-gray-900 mb-1">${p.name}</h3>
-            <p class="text-xs text-gray-600 mb-3">${p.desc}</p>
-            <p class="text-2xl font-black text-red-700 mb-3">UGX ${fmt(p.price)}</p>
-            <button onclick="addCart('${p.id}', '${zone}')" class="btn-red w-full py-2 rounded-lg font-black text-sm">+ ADD</button>
-          </div>
-        `).join('');
+function renderCatTabs(){
+  document.getElementById('catTabs').innerHTML = Object.keys(CATALOG).map(catKey=>`
+    <button class="cat-tab ${catKey===AppState.category?'active':''}" onclick="selectCategory('${catKey}')">${CATALOG[catKey].label.toUpperCase()}</button>
+  `).join('');
+}
+function selectCategory(catKey){
+  AppState.category = catKey;
+  AppState.subcategory = Object.keys(CATALOG[catKey].subs)[0];
+  AppState.searchTerm = '';
+  document.getElementById('searchInput').value = '';
+  renderAll();
+}
+function renderSubcatChips(){
+  const subs = CATALOG[AppState.category].subs;
+  document.getElementById('subcatRow').innerHTML = Object.keys(subs).map(subKey=>`
+    <button class="subcat-chip ${subKey===AppState.subcategory?'active':''}" onclick="selectSubcategory('${subKey}')">${subs[subKey].label}</button>
+  `).join('');
+}
+function selectSubcategory(subKey){
+  AppState.subcategory = subKey;
+  renderMain();
+  renderSubcatChips();
+}
+
+function renderPopular(){
+  const el = document.getElementById('popularWrap');
+  if(AppState.searchTerm){ el.innerHTML=''; return; }
+  let all=[];
+  Object.entries(CATALOG[AppState.category].subs).forEach(([subKey,sub])=>sub.vendors.forEach(v=>all.push({...v,subKey})));
+  all.sort((a,b)=>b.rating-a.rating);
+  const top = all.slice(0,5);
+  el.innerHTML = `
+    <div class="popular-label">TOP RATED IN ${CATALOG[AppState.category].label.toUpperCase()}</div>
+    <div class="popular-scroll">
+      ${top.map(v=>`
+        <div class="pop-chip" onclick="jumpToVendor('${v.subKey}','${v.id}')">
+          <div class="avatar" style="background:${avatarColor(v.name)}; width:40px;height:40px;font-size:0.85rem;">${initials(v.name)}</div>
+          <div class="name">${v.name}</div>
+          <div class="rating">★ ${v.rating}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+function jumpToVendor(subKey, vendorId){
+  AppState.subcategory = subKey;
+  AppState.searchTerm = '';
+  document.getElementById('searchInput').value = '';
+  renderSubcatChips();
+  renderMain();
+  setTimeout(()=>{
+    const target = document.getElementById('vendor-'+vendorId);
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 60);
+}
+
+function renderMain(){
+  const el = document.getElementById('mainArea');
+  const tabsShown = AppState.view==='shop';
+  document.getElementById('catTabs').classList.toggle('hidden', !tabsShown);
+  document.getElementById('subcatRow').classList.toggle('hidden', !tabsShown);
+  document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
+
+  if(AppState.view==='orders'){ el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Your past orders will show up here once you place one.</p></div>`; return; }
+  if(AppState.view==='profile'){ el.innerHTML = `<div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>`; return; }
+  if(AppState.searchTerm){ renderSearchResults(); return; }
+
+  const sub = CATALOG[AppState.category].subs[AppState.subcategory];
+  const vendorsWithCtx = sub.vendors.map(v=>({...v, catKey:AppState.category, subKey:AppState.subcategory}));
+  el.innerHTML = `<div class="stall-list">${vendorsWithCtx.map(v=>vendorCardHTML(v)).join('')}</div>`;
+}
+
+function renderSearchResults(){
+  const el = document.getElementById('mainArea');
+  const term = AppState.searchTerm.toLowerCase();
+  let matches = [];
+  Object.entries(CATALOG).forEach(([catKey,cat])=>{
+    Object.entries(cat.subs).forEach(([subKey,sub])=>{
+      sub.vendors.forEach(v=>{
+        const vendorHit = v.name.toLowerCase().includes(term);
+        const matchedItems = v.items.filter(i=>i.name.toLowerCase().includes(term) || vendorHit);
+        if(matchedItems.length) matches.push({...v, items: vendorHit ? v.items : matchedItems, catKey, subKey});
       });
-    }
+    });
+  });
+  if(!matches.length){
+    el.innerHTML = `<div class="empty-state">${ICONS.search}<p style="font-weight:700; color:var(--sand);">Nothing matches "${AppState.searchTerm}"</p><p>Try a different word, like a vendor name or a dish.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="stall-list">${matches.map(v=>vendorCardHTML(v)).join('')}</div>`;
+}
 
-    // ADD TO CART
-    function addCart(id, zone) {
-      const prod = AppState.products[zone].find(p => p.id === id);
-      const existing = AppState.cart.find(item => item.id === id);
-      if (existing) existing.qty++;
-      else AppState.cart.push({...prod, qty: 1});
-      updateDisplay();
-    }
+function vendorCardHTML(v){
+  const stallNo = stallNumberFor(v.id);
+  const showUNBS = v.catKey==='eats' || v.subKey==='groceries' || v.subKey==='rawfoods';
+  const avatarOrLogo = v.logo
+    ? `<img src="${v.logo}" class="avatar" onerror="this.outerHTML='<div class=&quot;avatar&quot; style=&quot;background:${avatarColor(v.name)}&quot;>${initials(v.name)}</div>'">`
+    : `<div class="avatar" style="background:${avatarColor(v.name)};">${initials(v.name)}</div>`;
+  const galleryHTML = (v.gallery && v.gallery.length) ? `
+    <div class="gallery-strip">
+      ${v.gallery.map(g=>`
+        <div class="gallery-item">
+          ${g.type==='video'
+            ? `<video src="${g.url}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>`
+            : `<img src="${g.url}" loading="lazy">`}
+          ${g.caption ? `<div class="gallery-caption">${g.caption}</div>` : ''}
+        </div>`).join('')}
+    </div>` : '';
 
-    // UPDATE QUANTITY
-    function updateQty(id, delta) {
-      const item = AppState.cart.find(item => item.id === id);
-      if (item) {
-        item.qty += delta;
-        if (item.qty <= 0) AppState.cart = AppState.cart.filter(i => i.id !== id);
-        updateDisplay();
-      }
-    }
-
-    // UPDATE DELIVERY
-    function updateDelivery() {
-      AppState.deliveryOption = document.querySelector('input[name="deliveryOption"]:checked').value;
-      updateDisplay();
-    }
-
-    // FORMAT PRICE
-    function fmt(n) {
-      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    // GET DELIVERY FEE
-    function getDeliveryFee() {
-      const base = AppState.deliveryFees[AppState.selectedArea] || 1000;
-      const express = AppState.deliveryOption === 'express' ? 2000 : 0;
-      return base + express;
-    }
-
-    // UPDATE DISPLAY
-    function updateDisplay() {
-      const total = AppState.cart.reduce((s, i) => s + i.price * i.qty, 0);
-      const delivery = getDeliveryFee();
-      const grandTotal = total + delivery;
-
-      DOM.cartCount.textContent = AppState.cart.length;
-      DOM.standardFeeDisplay.textContent = `+${fmt(AppState.deliveryFees[AppState.selectedArea])} UGX`;
-
-      if (AppState.cart.length === 0) {
-        DOM.cartItemsList.innerHTML = '<div class="empty-state"><div class="text-5xl mb-2">🛒</div><p class="text-lg font-bold">Empty basket</p></div>';
-        DOM.summaryItems.textContent = 'UGX 0';
-        DOM.summaryDelivery.textContent = 'UGX 0';
-        DOM.summaryTotal.textContent = 'UGX 0';
-        DOM.floatingCartBtn.classList.add('hidden');
-        return;
-      }
-
-      DOM.cartItemsList.innerHTML = AppState.cart.map(i => `
-        <div class="cart-item-card">
+  return `
+    <div class="stall-card" id="vendor-${v.id}">
+      <div class="stall-roof"></div>
+      <div class="stall-header">
+        ${avatarOrLogo}
+        <div>
+          <div class="stall-eyebrow">STALL NO. ${stallNo}</div>
+          <div class="stall-name">${v.name}</div>
+          <div class="stall-meta">
+            ${ICONS.pin} ${v.location} &nbsp;·&nbsp; ${ICONS.star}${v.rating} (${v.reviews}) &nbsp;·&nbsp; ${v.years} yrs on Tonninyira
+          </div>
+          <div class="verify-row">
+            ${ICONS.check} KCCA Licensed &nbsp;·&nbsp; ${ICONS.check} URA Registered
+            ${showUNBS ? '&nbsp;·&nbsp; '+ICONS.check+' UNBS Certified' : ''}
+          </div>
+        </div>
+      </div>
+      ${galleryHTML}
+      ${v.items.map(item=>`
+        <div class="item-row">
           <div>
-            <p class="font-black text-lg">${i.icon} ${i.name}</p>
-            <p class="text-sm text-gray-600">UGX ${fmt(i.price)} x ${i.qty}</p>
+            <div class="item-name">${item.name}</div>
+            <div class="item-desc">${item.desc}</div>
           </div>
-          <div class="flex gap-2">
-            <button class="quantity-btn" onclick="updateQty('${i.id}', -1)">−</button>
-            <span class="font-black min-w-[2rem] text-center">${i.qty}</span>
-            <button class="quantity-btn" onclick="updateQty('${i.id}', 1)">+</button>
+          <div class="item-action">
+            <span class="price-tag">${fmt(item.price)}</span>
+            <button class="add-btn" onclick="addToCart('${v.id}','${item.id}')">+</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function addToCart(vendorId, itemId){
+  const vendor = findVendor(vendorId);
+  const item = vendor.items.find(i=>i.id===itemId);
+  const existing = AppState.cart.find(c=>c.vendorId===vendorId && c.itemId===itemId);
+  if(existing) existing.qty++;
+  else AppState.cart.push({vendorId, itemId, qty:1, name:item.name, price:item.price, vendorName:vendor.name});
+  updateCartUI();
+}
+function updateQty(vendorId, itemId, delta){
+  const line = AppState.cart.find(c=>c.vendorId===vendorId && c.itemId===itemId);
+  if(!line) return;
+  line.qty += delta;
+  if(line.qty<=0) AppState.cart = AppState.cart.filter(c=>!(c.vendorId===vendorId && c.itemId===itemId));
+  updateCartUI();
+}
+function cartSubtotal(){ return AppState.cart.reduce((s,c)=>s+c.price*c.qty,0); }
+function cartCount(){ return AppState.cart.reduce((s,c)=>s+c.qty,0); }
+
+function updateCartUI(){
+  const count = cartCount();
+  document.getElementById('cartCount').classList.toggle('hidden', count===0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('navCartBadge').classList.toggle('hidden', count===0);
+  document.getElementById('navCartBadge').textContent = count;
+
+  const body = document.getElementById('cartBody');
+  if(AppState.cart.length===0){
+    body.innerHTML = `<div class="empty-state">${ICONS.emptyCart}<p style="font-weight:700; color:var(--sand);">Your basket is empty</p><p>Add something tasty or useful.</p></div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div class="delivery-note">
+      ${ICONS.moto}
+      <div>
+        <p class="dn-title">Delivery fee: set by your Tonninyira rider</p>
+        <p class="dn-body">Our riders are ID-verified and carry a Tonninyira Rider ID. You'll get the exact fee before pickup — usually UGX 1,000–4,000 depending on distance.</p>
+      </div>
+    </div>
+    ${AppState.cart.map(c=>`
+      <div class="cart-line-card">
+        <div class="cart-line-top">
+          <div><div style="font-weight:700;">${c.name}</div><div class="cart-line-vendor">From ${c.vendorName}</div></div>
+          <div class="price-tag">${fmt(c.price)}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <span style="font-size:0.82rem; color:var(--muted);">Qty</span>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button class="qty-btn" onclick="updateQty('${c.vendorId}','${c.itemId}',-1)">−</button>
+            <span style="font-weight:800; min-width:18px; text-align:center;">${c.qty}</span>
+            <button class="qty-btn" onclick="updateQty('${c.vendorId}','${c.itemId}',1)">+</button>
           </div>
         </div>
-      `).join('');
+      </div>`).join('')}
+    <div class="summary-box">
+      <div class="summary-row"><span>Subtotal (to vendors)</span><span>UGX ${fmt(cartSubtotal())}</span></div>
+      <div class="summary-row"><span>Delivery</span><span>Set by rider</span></div>
+      <div class="summary-row total"><span>You pay vendors</span><span>UGX ${fmt(cartSubtotal())}</span></div>
+    </div>
+    <button class="btn-primary" onclick="completeOrder('Cash on Delivery')">Place Order — Pay Cash on Delivery</button>
+    <button class="btn-link-alt" onclick="toggleAltPay()">Prefer Mobile Money instead?</button>
+    <div id="altPayBox" class="hidden" style="margin-top:6px;">
+      <button class="pay-option" onclick="completeOrder('MTN MoMo')">
+        <div class="pay-icon" style="background:var(--gold); color:var(--ink);">${ICONS.phone}</div>
+        <div><div class="pay-name">MTN MoMo</div><div class="pay-sub">Pay from your MTN mobile money</div></div>
+      </button>
+      <button class="pay-option" onclick="completeOrder('Airtel Money')">
+        <div class="pay-icon" style="background:var(--red); color:var(--sand);">${ICONS.phone}</div>
+        <div><div class="pay-name">Airtel Money</div><div class="pay-sub">Pay from your Airtel mobile money</div></div>
+      </button>
+    </div>
+    <button class="btn-secondary" onclick="closeCart()">Keep Browsing</button>
+  `;
+}
+function toggleAltPay(){ document.getElementById('altPayBox').classList.toggle('hidden'); }
 
-      DOM.summaryItems.textContent = `UGX ${fmt(total)}`;
-      DOM.summaryDelivery.textContent = `UGX ${fmt(delivery)}`;
-      DOM.summaryTotal.textContent = `UGX ${fmt(grandTotal)}`;
-      DOM.floatingCartBtn.classList.remove('hidden');
-    }
+function openCart(){ document.getElementById('cartOverlay').classList.remove('hidden'); document.getElementById('cartSheet').classList.remove('hidden'); }
+function closeCart(){ document.getElementById('cartOverlay').classList.add('hidden'); document.getElementById('cartSheet').classList.add('hidden'); }
+document.getElementById('cartIconBtn').addEventListener('click', openCart);
 
-    // SETUP EVENTS
-    function setupEvents() {
-      DOM.zoneTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          DOM.zoneTabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          DOM.zoneContents.forEach(c => c.classList.add('hidden'));
-          document.getElementById(tab.dataset.zone + 'Zone').classList.remove('hidden');
-        });
+async function completeOrder(method){
+  if(AppState.cart.length===0) return;
+  const orderId = 'TN-' + Math.random().toString(36).substr(2,7).toUpperCase();
+  const subtotal = cartSubtotal();
+  closeCart();
+
+  document.getElementById('confirmOrderId').textContent = orderId;
+  document.getElementById('confirmSummary').innerHTML = `
+    <div class="summary-box" style="text-align:left;">
+      ${AppState.cart.map(c=>`<div class="summary-row"><span>${c.name} ×${c.qty}</span><span>UGX ${fmt(c.price*c.qty)}</span></div>`).join('')}
+      <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal)}</span></div>
+    </div>`;
+
+  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
+  document.getElementById('confirmRider').innerHTML = `
+    <div class="rider-card">
+      <div class="avatar" style="background:${avatarColor(rider.name)}; width:44px;height:44px;font-size:0.85rem;">${initials(rider.name)}</div>
+      <div style="flex:1;">
+        <div style="font-weight:800;">${rider.name} <span class="verify-check">${ICONS.check}</span></div>
+        <div style="font-size:0.78rem; color:var(--muted);">${rider.vehicle} · ${rider.tid}</div>
+      </div>
+      <div style="text-align:right; color:var(--gold); font-weight:800;">★ ${rider.rating}</div>
+    </div>`;
+
+  document.getElementById('confirmOverlay').classList.remove('hidden');
+  document.getElementById('confirmSheet').classList.remove('hidden');
+
+  try{
+    await supabaseClient.from('orders').insert({
+      order_id: orderId, items: AppState.cart, subtotal, payment_method: method,
+      area: document.getElementById('areaSelect').value, rider_tid: rider.tid, created_at: new Date().toISOString(),
+    });
+  }catch(e){ console.log('Order log skipped (Supabase not configured):', e.message); }
+
+  AppState.cart = [];
+  updateCartUI();
+}
+
+function goView(view){
+  AppState.view = view;
+  ['navHome','navOrders','navProfile'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  if(view==='shop') document.getElementById('navHome').classList.add('active');
+  if(view==='orders') document.getElementById('navOrders').classList.add('active');
+  if(view==='profile') document.getElementById('navProfile').classList.add('active');
+  renderMain();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function resetApp(){
+  document.getElementById('confirmOverlay').classList.add('hidden');
+  document.getElementById('confirmSheet').classList.add('hidden');
+  AppState.cart = []; AppState.searchTerm = '';
+  document.getElementById('searchInput').value = '';
+  goView('shop'); updateCartUI();
+}
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  AppState.searchTerm = e.target.value.trim();
+  renderPopular(); renderMain();
+});
+
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+let supabaseClient;
+try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+catch(e){ supabaseClient = { from:()=>({insert:async()=>({}), select:async()=>({data:null,error:'no client'})}) }; }
+
+/* Pulls real registered stalls (with their own logo/gallery/items) from the
+   'vendors' table your admin console writes to. Silently does nothing if
+   Supabase isn't configured yet or the table is empty. */
+async function loadLiveVendors(){
+  try{
+    const {data, error} = await supabaseClient.from('vendors').select('*');
+    if(error || !data || !data.length) return;
+    data.forEach((rv, idx)=>{
+      const catKey = rv.category, subKey = rv.subcategory;
+      if(!CATALOG[catKey] || !CATALOG[catKey].subs[subKey]) return;
+      const items = (rv.items||[]).map((it,i)=>({...it, id:(rv.tonninyira_id||'live'+idx)+'-i'+i}));
+      if(!items.length) return;
+      CATALOG[catKey].subs[subKey].vendors.push({
+        id: rv.tonninyira_id || ('live-'+idx),
+        name: rv.business_name, location: rv.location||'',
+        rating: rv.rating||4.5, reviews: rv.reviews||0, years: rv.years||0,
+        logo: rv.logo_url||null, gallery: rv.gallery||[], items,
       });
-
-      DOM.areaSelect.addEventListener('change', (e) => {
-        AppState.selectedArea = e.target.value;
-        updateDisplay();
+    });
+    renderAll();
+  }catch(e){ console.log('Live vendor data unavailable yet:', e.message); }
+}
+async function loadLiveRiders(){
+  try{
+    /* Queries riders_public (a view with no national_id/phone columns) --
+       never the raw riders table -- see the SQL note in the admin console. */
+    const {data, error} = await supabaseClient.from('riders_public').select('*');
+    if(error || !data || !data.length) return;
+    data.forEach(r=>{
+      const parts = (r.full_name||'Rider').split(' ');
+      SAMPLE_RIDERS.push({
+        tid: r.tonninyira_id, name: parts[0] + (parts[1] ? ' '+parts[1][0]+'.' : ''),
+        vehicle: (r.vehicle_type||'Boda-boda') + ' · ' + (r.plate_number||''), rating: r.rating||4.8,
       });
+    });
+  }catch(e){ console.log('Live rider data unavailable yet:', e.message); }
+}
 
-      DOM.cartBtn.addEventListener('click', openCart);
-      DOM.floatingCartBtn.addEventListener('click', openCart);
-      DOM.closeCartBtn.addEventListener('click', closeCart);
-      DOM.continueShoppingBtn.addEventListener('click', closeCart);
-      DOM.cartOverlay.addEventListener('click', closeCart);
-
-      DOM.checkoutBtn.addEventListener('click', () => {
-        if (AppState.cart.length === 0) return alert('Add items first!');
-        closeCart();
-        DOM.paymentModal.classList.remove('hidden');
-        DOM.paymentOverlay.classList.remove('hidden');
-      });
-
-      DOM.closePaymentBtn.addEventListener('click', () => {
-        DOM.paymentModal.classList.add('hidden');
-        DOM.paymentOverlay.classList.add('hidden');
-      });
-
-      DOM.paymentOptions.forEach(btn => {
-        btn.addEventListener('click', () => completeOrder(btn.dataset.method));
-      });
-
-      DOM.confirmationCloseBtn.addEventListener('click', () => {
-        location.reload();
-      });
-    }
-
-    function openCart() {
-      DOM.cartPanel.classList.remove('hidden');
-      DOM.cartOverlay.classList.remove('hidden');
-    }
-
-    function closeCart() {
-      DOM.cartPanel.classList.add('hidden');
-      DOM.cartOverlay.classList.add('hidden');
-    }
-
-    function completeOrder(method) {
-      const orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-      const total = AppState.cart.reduce((s, i) => s + i.price * i.qty, 0);
-      const delivery = getDeliveryFee();
-      const grandTotal = total + delivery;
-
-      DOM.paymentModal.classList.add('hidden');
-      DOM.paymentOverlay.classList.add('hidden');
-
-      DOM.confirmationOrderId.textContent = orderId;
-      DOM.confirmationSummary.innerHTML = `
-        <div class="space-y-2">
-          ${AppState.cart.map(i => `
-            <div class="flex justify-between text-sm font-semibold">
-              <span>${i.icon} ${i.name} x${i.qty}</span>
-              <span>UGX ${fmt(i.price * i.qty)}</span>
-            </div>
-          `).join('')}
-          <div class="border-t-2 border-gray-300 pt-2 flex justify-between font-black text-lg text-red-700">
-            <span>TOTAL:</span>
-            <span>UGX ${fmt(grandTotal)}</span>
-          </div>
-        </div>
-      `;
-
-      DOM.confirmationModal.classList.remove('hidden');
-      DOM.confirmationOverlay.classList.remove('hidden');
-
-      AppState.cart = [];
-      updateDisplay();
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
-
+function renderAll(){ renderCatTabs(); renderSubcatChips(); renderPopular(); renderMain(); }
+renderAll();
+updateCartUI();
+loadLiveVendors();
+loadLiveRiders();
+</script>
 </body>
 </html>
