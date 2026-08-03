@@ -342,19 +342,35 @@ document.getElementById('navCartIcon').innerHTML = ICONS.cart;
 document.getElementById('navProfileIcon').innerHTML = ICONS.user;
 document.getElementById('confirmCheckIcon').innerHTML = ICONS.check;
 document.getElementById('confirmMotoIcon').innerHTML = ICONS.moto;
-document.getElementById('brandBadge').innerHTML = `
-  <svg viewBox="0 0 200 200" width="30" height="30">
-    <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
-    <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
-    <g transform="rotate(-10 148 70)">
-      <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
-      <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
-      <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
-      <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
-      <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
-      <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
-    </g>
-  </svg>`;
+function paintBrandSVG(){
+  document.getElementById('brandBadge').innerHTML = `
+    <svg viewBox="0 0 200 200" width="30" height="30">
+      <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
+      <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
+      <g transform="rotate(-10 148 70)">
+        <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
+        <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
+        <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
+        <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
+        <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
+        <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
+      </g>
+    </svg>`;
+}
+/* Real logo upload path: drop a file at assets/logo.png next to this HTML
+   and it takes over automatically -- no code changes needed. Nothing there
+   yet (or it 404s) -> falls back to the built-in mark, so the header never
+   shows a broken image. */
+(function loadBrandLogo(){
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('brandBadge').innerHTML = '';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
+    document.getElementById('brandBadge').appendChild(img);
+  };
+  img.onerror = paintBrandSVG;
+  img.src = 'assets/logo.png';
+})();
 
 const CATALOG = {
   eats: { label:"Eats", subs: {
@@ -402,7 +418,7 @@ const CATALOG = {
     ]},
   }},
   shop: { label:"Shop", subs: {
-    groceries: { label:"Groceries", vendors:[
+    groceries: { label:"Raw Foods", vendors:[
       { id:"v7", name:"Owino Grains Corner", location:"Owino Market", rating:4.6, reviews:756, years:18, items:[
         {id:"g1", name:"Posho (1kg)", desc:"Fine white maize flour", price:3500},
         {id:"g2", name:"Dry Beans (2kg)", desc:"Sorted, clean", price:6000},
@@ -415,8 +431,12 @@ const CATALOG = {
         {id:"g7", name:"Tea Leaves (250g)", desc:"Local blend", price:3500},
         {id:"g8", name:"Bar Soap (3 pcs)", desc:"Laundry soap", price:4000},
       ]},
+      { id:"v15", name:"Ggaba Smokehouse", location:"Ggaba", rating:4.6, reviews:174, years:9, items:[
+        {id:"g9", name:"Dried Mukene (500g)", desc:"Sun-dried silver fish", price:5000},
+        {id:"g10", name:"Smoked Fish (Whole)", desc:"Slow-smoked over charcoal", price:8000},
+      ]},
     ]},
-    rawfoods: { label:"Raw Foods", vendors:[
+    rawfoods: { label:"Groceries", vendors:[
       { id:"v9", name:"Owino Fresh Produce", location:"Owino Market", rating:4.5, reviews:892, years:20, items:[
         {id:"r1", name:"Tomatoes (heap)", desc:"30+ pieces", price:4000},
         {id:"r2", name:"Onions (bunch)", desc:"5-6 large bulbs", price:2500},
@@ -426,11 +446,10 @@ const CATALOG = {
       { id:"v10", name:"Ggaba Fish Landing", location:"Ggaba", rating:4.7, reviews:410, years:14, items:[
         {id:"r5", name:"Fresh Tilapia (1kg)", desc:"Whole fish", price:12000},
         {id:"r6", name:"Nile Perch (1kg)", desc:"Fillet cut", price:15000},
-        {id:"r7", name:"Mukene (500g)", desc:"Dried silver fish", price:5000},
-        {id:"r8", name:"Smoked Fish", desc:"Whole, smoked", price:8000},
+        {id:"r7", name:"Fresh Nkejje (500g)", desc:"Small silver fish, sold fresh", price:6000},
       ]},
     ]},
-    mivumba: { label:"Mivumba", vendors:[
+    mivumba: { label:"Mivumba/Second-Hand", vendors:[
       { id:"v11", name:"Bwaise Bale Traders", location:"Bwaise", rating:4.4, reviews:203, years:7, items:[
         {id:"m1", name:"Men's Shirts Bundle", desc:"Assorted, 20 pieces", price:60000},
         {id:"m2", name:"Kids Wear Bundle", desc:"Mixed sizes, 25 pieces", price:45000},
@@ -443,8 +462,6 @@ const CATALOG = {
         {id:"m7", name:"Baby Clothes Bundle", desc:"0-2 yrs, 30 pieces", price:40000},
         {id:"m8", name:"Sweaters Bundle", desc:"Assorted, 15 pieces", price:65000},
       ]},
-    ]},
-    secondhand: { label:"Second-Hand", vendors:[
       { id:"v13", name:"Kampala Kicks", location:"Kisugu", rating:4.6, reviews:189, years:5, items:[
         {id:"sh1", name:"Nike Sneakers", desc:"Size 42, good condition", price:35000},
         {id:"sh2", name:"Leather Loafers", desc:"Size 43", price:25000},
@@ -566,7 +583,15 @@ function renderMain(){
   document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
 
   if(AppState.view==='orders'){ el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Your past orders will show up here once you place one.</p></div>`; return; }
-  if(AppState.view==='profile'){ el.innerHTML = `<div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>`; return; }
+  if(AppState.view==='profile'){
+    el.innerHTML = `
+      <div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>
+      <div style="padding:0 16px 24px; max-width:420px; margin:0 auto;">
+        <a href="register.html?as=vendor" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Become a Vendor — Register Your Stall</a>
+        <a href="register.html?as=rider" class="btn-secondary" style="display:block; text-align:center; text-decoration:none;">Become a Rider — Register to Deliver</a>
+      </div>`;
+    return;
+  }
   if(AppState.searchTerm){ renderSearchResults(); return; }
 
   const sub = CATALOG[AppState.category].subs[AppState.subcategory];

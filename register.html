@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonninyira Staff Console</title>
+<title>Tonninyira — Register as a Vendor or Rider</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,10 +21,13 @@
   .wrap{max-width:640px; margin:0 auto; padding:16px;}
 
   header{background:var(--ink); border-bottom:1px solid rgba(243,232,216,0.08); padding:16px;}
-  .brand-row{display:flex; align-items:center; gap:10px; max-width:640px; margin:0 auto;}
+  .brand-row{display:flex; align-items:center; gap:10px; max-width:640px; margin:0 auto; justify-content:space-between;}
+  .brand-left{display:flex; align-items:center; gap:10px;}
   .brand-badge{width:38px;height:38px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brand-name{font-size:1.15rem;}
   .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .back-link{color:var(--muted); font-size:0.82rem; font-weight:700; text-decoration:none; white-space:nowrap;}
+  .back-link:hover{color:var(--sand);}
 
   .tabs{display:flex; gap:8px; margin:18px 0 6px;}
   .tab-btn{flex:1; padding:13px; border-radius:12px; border:none; cursor:pointer; font-family:'Alfa Slab One'; font-size:0.92rem; background:var(--card); color:var(--muted);}
@@ -66,11 +69,14 @@
 
 <header>
   <div class="brand-row">
-    <div class="brand-badge" id="brandBadge"></div>
-    <div>
-      <div class="brand-name display">TONNINYIRA</div>
-      <div class="brand-tag">STAFF CONSOLE — REGISTRATION</div>
+    <div class="brand-left">
+      <div class="brand-badge" id="brandBadge"></div>
+      <div>
+        <div class="brand-name display">TONNINYIRA</div>
+        <div class="brand-tag">VENDOR &amp; RIDER SIGN-UP</div>
+      </div>
     </div>
+    <a class="back-link" href="index.html">← Back to app</a>
   </div>
 </header>
 
@@ -116,17 +122,17 @@
         <div class="file-preview" id="logoPreview">Logo</div>
         <div class="file-slot-fields">
           <input type="file" name="logoFile" accept="image/*" onchange="handleFilePreview(this, document.getElementById('logoPreview'))">
-          <div class="helper">Square image works best — this shows on the stall card instead of initials.</div>
+          <div class="helper">Square image works best — this shows on your stall card instead of initials.</div>
         </div>
       </div>
 
-      <h3>Gallery <span class="opt" style="text-transform:none;">— photos or short videos of the stall, products, or the person behind it</span></h3>
+      <h3>Gallery <span class="opt" style="text-transform:none;">— photos or short videos of your stall, products, or yourself</span></h3>
       <div id="galleryFields"></div>
 
       <h3>Commodities <span class="opt" style="text-transform:none;">— at least one to go live</span></h3>
       <div id="itemFields"></div>
 
-      <button class="btn-primary" type="submit">Register Stall &amp; Assign Tonninyira ID</button>
+      <button class="btn-primary" type="submit">Register My Stall &amp; Get My Tonninyira ID</button>
     </form>
 
     <h3 style="margin-top:32px;">Registered This Session</h3>
@@ -136,14 +142,14 @@
   <!-- ===================== RIDER FORM ===================== -->
   <section id="riderSection" class="hidden">
     <form id="riderForm" onsubmit="submitRiderForm(event)">
-      <h3>Rider Details</h3>
+      <h3>Your Details</h3>
       <label>Full Name</label>
       <input type="text" name="riderName" required>
       <label>Phone Number</label>
       <input type="tel" name="riderPhone" required>
       <label>National ID Number (NID)</label>
       <input type="text" name="nid" required placeholder="Used for verification only — never shown to customers">
-      <div class="helper">Only the rider's name, photo and Tonninyira ID are ever shown to customers. The NID stays internal, for accountability if something goes wrong.</div>
+      <div class="helper">Only your name, photo and Tonninyira ID are ever shown to customers. Your NID stays internal, for accountability if something goes wrong.</div>
 
       <label>Profile Photo</label>
       <div class="file-slot">
@@ -161,7 +167,7 @@
       <label>Plate / Registration Number</label>
       <input type="text" name="plate" required placeholder="e.g. UEB 245K">
 
-      <button class="btn-primary" type="submit">Register Rider &amp; Assign Tonninyira ID</button>
+      <button class="btn-primary" type="submit">Register Me &amp; Get My Tonninyira ID</button>
     </form>
 
     <h3 style="margin-top:32px;">Registered This Session</h3>
@@ -175,23 +181,35 @@
 const ICONS = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 };
-document.getElementById('brandBadge').innerHTML = `
-  <svg viewBox="0 0 200 200" width="26" height="26">
-    <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
-    <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
-    <g transform="rotate(-10 148 70)">
-      <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
-      <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
-      <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
-      <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
-      <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
-      <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
-    </g>
-  </svg>`;
+function paintBrandSVG(){
+  document.getElementById('brandBadge').innerHTML = `
+    <svg viewBox="0 0 200 200" width="26" height="26">
+      <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
+      <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
+      <g transform="rotate(-10 148 70)">
+        <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
+        <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
+        <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
+        <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
+        <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
+        <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
+      </g>
+    </svg>`;
+}
+(function loadBrandLogo(){
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('brandBadge').innerHTML = '';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
+    document.getElementById('brandBadge').appendChild(img);
+  };
+  img.onerror = paintBrandSVG;
+  img.src = 'assets/logo.png';
+})();
 
 const SUBCATS = {
   eats: [['breakfast','Breakfast'],['lunch','Lunch'],['fastfoods','Fast Foods']],
-  shop: [['groceries','Groceries'],['rawfoods','Raw Foods'],['mivumba','Mivumba/Second-Hand']],
+  shop: [['groceries','Raw Foods'],['rawfoods','Groceries'],['mivumba','Mivumba/Second-Hand']],
 };
 function updateSubcatOptions(){
   const cat = document.getElementById('vCategory').value;
@@ -205,6 +223,13 @@ function showTab(tab){
   document.getElementById('tabVendorBtn').classList.toggle('active', tab==='vendor');
   document.getElementById('tabRiderBtn').classList.toggle('active', tab==='rider');
 }
+
+/* Deep-link support: index.html links here with ?as=vendor or ?as=rider
+   so a customer tapping "Become a Rider" lands straight on that form. */
+(function openRequestedTab(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('as')==='rider') showTab('rider');
+})();
 
 /* Build 4 gallery slots + 6 item rows once, up front */
 (function buildDynamicFields(){
