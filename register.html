@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonninyira — Register as a Vendor or Rider</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#1C1410; --card:#2A1F19; --card2:#33261C;
+    --red:#E23F25; --gold:#F5B400; --green:#4C9A5B;
+    --sand:#F3E8D8; --muted:#9C897A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ink); color:var(--sand); font-family:'Work Sans',sans-serif; padding-bottom:60px;}
+  .display{font-family:'Alfa Slab One',cursive;}
+  .hidden{display:none !important;}
+  .wrap{max-width:640px; margin:0 auto; padding:16px;}
+
+  header{background:var(--ink); border-bottom:1px solid rgba(243,232,216,0.08); padding:16px;}
+  .brand-row{display:flex; align-items:center; gap:10px; max-width:640px; margin:0 auto; justify-content:space-between;}
+  .brand-left{display:flex; align-items:center; gap:10px;}
+  .brand-badge{width:38px;height:38px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-name{font-size:1.15rem;}
+  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .back-link{color:var(--muted); font-size:0.82rem; font-weight:700; text-decoration:none; white-space:nowrap;}
+  .back-link:hover{color:var(--sand);}
+
+  .tabs{display:flex; gap:8px; margin:18px 0 6px;}
+  .tab-btn{flex:1; padding:13px; border-radius:12px; border:none; cursor:pointer; font-family:'Alfa Slab One'; font-size:0.92rem; background:var(--card); color:var(--muted);}
+  .tab-btn.active{background:var(--red); color:var(--sand);}
+
+  h3{font-size:0.95rem; color:var(--gold); letter-spacing:0.5px; margin:22px 0 10px; text-transform:uppercase; font-weight:800;}
+  label{display:block; font-size:0.82rem; font-weight:700; color:var(--sand); margin:12px 0 5px;}
+  label .opt{color:var(--muted); font-weight:500; text-transform:none; letter-spacing:0;}
+  input[type=text], input[type=tel], input[type=number], select, textarea{
+    width:100%; padding:12px; border-radius:10px; border:1px solid rgba(243,232,216,0.15);
+    background:var(--card); color:var(--sand); font-family:'Work Sans'; font-size:0.92rem;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--gold);}
+  select option{background:var(--card);}
+
+  .card{background:var(--card2); border-radius:14px; padding:14px; margin-top:10px; border:1px solid rgba(243,232,216,0.06);}
+  .item-row-form{display:grid; grid-template-columns:1.4fr 1fr 0.7fr; gap:8px;}
+  .file-slot{display:flex; gap:10px; align-items:flex-start; margin-top:10px;}
+  .file-preview{width:64px; height:64px; border-radius:10px; background:var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:0.65rem; text-align:center;}
+  .file-preview img, .file-preview video{width:100%; height:100%; object-fit:cover;}
+  .file-slot-fields{flex:1;}
+  .file-slot-fields input[type=file]{width:100%; font-size:0.78rem; color:var(--muted);}
+
+  .btn-primary{width:100%; padding:15px; border-radius:12px; border:none; background:var(--red); color:var(--sand); font-family:'Alfa Slab One'; font-size:1rem; cursor:pointer; margin-top:20px;}
+  .helper{font-size:0.74rem; color:var(--muted); margin-top:4px; line-height:1.4;}
+
+  .session-card{background:var(--card); border-radius:12px; padding:13px; margin-bottom:8px; border-left:4px solid var(--green);}
+  .verify-check{color:var(--green); display:inline-flex; vertical-align:-3px;}
+  .verify-check svg{width:15px;height:15px;}
+
+  #toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--green); color:var(--sand); padding:12px 20px; border-radius:12px;
+    font-weight:700; font-size:0.88rem; box-shadow:0 8px 20px rgba(0,0,0,0.35); z-index:100;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-row">
+    <div class="brand-left">
+      <div class="brand-badge" id="brandBadge"></div>
+      <div>
+        <div class="brand-name display">TONNINYIRA</div>
+        <div class="brand-tag">VENDOR &amp; RIDER SIGN-UP</div>
+      </div>
+    </div>
+    <a class="back-link" href="index.html">← Back to app</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active" id="tabVendorBtn" onclick="showTab('vendor')">Register a Stall</button>
+    <button class="tab-btn" id="tabRiderBtn" onclick="showTab('rider')">Register a Rider</button>
+  </div>
+
+  <!-- ===================== VENDOR / STALL FORM ===================== -->
+  <section id="vendorSection">
+    <form id="vendorForm" onsubmit="submitVendorForm(event)">
+      <h3>Stall Details</h3>
+      <label>Business / Stall Name</label>
+      <input type="text" name="bizName" required>
+      <label>Owner Full Name</label>
+      <input type="text" name="ownerName" required>
+      <label>Phone Number</label>
+      <input type="tel" name="phone" required>
+      <label>Market / Location</label>
+      <select name="location" required>
+        <option>Kisugu</option><option>Kansanga</option><option>Ggaba</option><option>Namwongo</option>
+        <option>Owino Market</option><option>Bwaise</option><option>Entebbe</option><option>Kasangati</option><option>Jinja</option>
+      </select>
+      <label>Category</label>
+      <select id="vCategory" name="category" onchange="updateSubcatOptions()">
+        <option value="eats">Eats</option>
+        <option value="shop">Shop</option>
+      </select>
+      <label>Subcategory</label>
+      <select id="vSubcategory" name="subcategory"></select>
+
+      <h3>Compliance Documents</h3>
+      <label>KCCA Trading License No.</label>
+      <input type="text" name="kcca" required placeholder="e.g. KCCA/TL/2026/00123">
+      <label>URA TIN</label>
+      <input type="text" name="ura" required placeholder="10-digit Tax Identification Number">
+      <label>UNBS Certificate No. <span class="opt">(food & goods standards — if applicable)</span></label>
+      <input type="text" name="unbs" placeholder="Leave blank if not applicable">
+
+      <h3>Business Logo</h3>
+      <div class="file-slot">
+        <div class="file-preview" id="logoPreview">Logo</div>
+        <div class="file-slot-fields">
+          <input type="file" name="logoFile" accept="image/*" onchange="handleFilePreview(this, document.getElementById('logoPreview'))">
+          <div class="helper">Square image works best — this shows on your stall card instead of initials.</div>
+        </div>
+      </div>
+
+      <h3>Gallery <span class="opt" style="text-transform:none;">— photos or short videos of your stall, products, or yourself</span></h3>
+      <div id="galleryFields"></div>
+
+      <h3>Commodities <span class="opt" style="text-transform:none;">— at least one to go live</span></h3>
+      <div id="itemFields"></div>
+
+      <button class="btn-primary" type="submit">Register My Stall &amp; Get My Tonninyira ID</button>
+    </form>
+
+    <h3 style="margin-top:32px;">Registered This Session</h3>
+    <div id="vendorSessionList"><p class="helper">Nothing yet — submit the form above.</p></div>
+  </section>
+
+  <!-- ===================== RIDER FORM ===================== -->
+  <section id="riderSection" class="hidden">
+    <form id="riderForm" onsubmit="submitRiderForm(event)">
+      <h3>Your Details</h3>
+      <label>Full Name</label>
+      <input type="text" name="riderName" required>
+      <label>Phone Number</label>
+      <input type="tel" name="riderPhone" required>
+      <label>National ID Number (NID)</label>
+      <input type="text" name="nid" required placeholder="Used for verification only — never shown to customers">
+      <div class="helper">Only your name, photo and Tonninyira ID are ever shown to customers. Your NID stays internal, for accountability if something goes wrong.</div>
+
+      <label>Profile Photo</label>
+      <div class="file-slot">
+        <div class="file-preview" id="riderPhotoPreview">Photo</div>
+        <div class="file-slot-fields">
+          <input type="file" name="riderPhoto" accept="image/*" onchange="handleFilePreview(this, document.getElementById('riderPhotoPreview'))">
+        </div>
+      </div>
+
+      <h3>Vehicle</h3>
+      <label>Vehicle Type</label>
+      <select name="vehicleType">
+        <option>Boda-boda</option><option>Bicycle</option><option>Van</option>
+      </select>
+      <label>Plate / Registration Number</label>
+      <input type="text" name="plate" required placeholder="e.g. UEB 245K">
+
+      <button class="btn-primary" type="submit">Register Me &amp; Get My Tonninyira ID</button>
+    </form>
+
+    <h3 style="margin-top:32px;">Registered This Session</h3>
+    <div id="riderSessionList"><p class="helper">Nothing yet — submit the form above.</p></div>
+  </section>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script>
+const ICONS = {
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+};
+function paintBrandSVG(){
+  document.getElementById('brandBadge').innerHTML = `
+    <svg viewBox="0 0 200 200" width="26" height="26">
+      <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
+      <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
+      <g transform="rotate(-10 148 70)">
+        <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
+        <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
+        <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
+        <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
+        <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
+        <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
+      </g>
+    </svg>`;
+}
+(function loadBrandLogo(){
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('brandBadge').innerHTML = '';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
+    document.getElementById('brandBadge').appendChild(img);
+  };
+  img.onerror = paintBrandSVG;
+  img.src = 'assets/logo.png';
+})();
+
+const SUBCATS = {
+  eats: [['breakfast','Breakfast'],['lunch','Lunch'],['fastfoods','Fast Foods']],
+  shop: [['groceries','Raw Foods'],['rawfoods','Groceries'],['mivumba','Mivumba/Second-Hand']],
+};
+function updateSubcatOptions(){
+  const cat = document.getElementById('vCategory').value;
+  document.getElementById('vSubcategory').innerHTML = SUBCATS[cat].map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+}
+updateSubcatOptions();
+
+function showTab(tab){
+  document.getElementById('vendorSection').classList.toggle('hidden', tab!=='vendor');
+  document.getElementById('riderSection').classList.toggle('hidden', tab!=='rider');
+  document.getElementById('tabVendorBtn').classList.toggle('active', tab==='vendor');
+  document.getElementById('tabRiderBtn').classList.toggle('active', tab==='rider');
+}
+
+/* Deep-link support: index.html links here with ?as=vendor or ?as=rider
+   so a customer tapping "Become a Rider" lands straight on that form. */
+(function openRequestedTab(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('as')==='rider') showTab('rider');
+})();
+
+/* Build 4 gallery slots + 6 item rows once, up front */
+(function buildDynamicFields(){
+  const gal = document.getElementById('galleryFields');
+  for(let i=1;i<=4;i++){
+    gal.insertAdjacentHTML('beforeend', `
+      <div class="card">
+        <div class="file-slot">
+          <div class="file-preview" id="galPrev${i}">#${i}</div>
+          <div class="file-slot-fields">
+            <input type="file" accept="image/*,video/*" id="galFile${i}" onchange="handleFilePreview(this, document.getElementById('galPrev${i}'))">
+            <input type="text" id="galCap${i}" placeholder="Caption (optional)" style="margin-top:8px;">
+          </div>
+        </div>
+      </div>`);
+  }
+  const items = document.getElementById('itemFields');
+  for(let i=1;i<=6;i++){
+    items.insertAdjacentHTML('beforeend', `
+      <div class="item-row-form" style="margin-bottom:8px;">
+        <input type="text" id="itemName${i}" placeholder="${i===1?'Item name (required)':'Item name'}" ${i===1?'required':''}>
+        <input type="text" id="itemDesc${i}" placeholder="Short description">
+        <input type="number" id="itemPrice${i}" placeholder="UGX">
+      </div>`);
+  }
+})();
+
+function handleFilePreview(inputEl, previewEl){
+  const file = inputEl.files[0];
+  if(!file){ previewEl.innerHTML = previewEl.dataset.label||''; return; }
+  const url = URL.createObjectURL(file);
+  previewEl.innerHTML = file.type.startsWith('video/')
+    ? `<video src="${url}" muted></video>`
+    : `<img src="${url}">`;
+}
+
+let vendorCounter = 0, riderCounter = 0;
+
+function maskNid(nid){ return nid.length<=4 ? '••••' : '•'.repeat(nid.length-4) + nid.slice(-4); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.remove('hidden');
+  setTimeout(()=>t.classList.add('hidden'), 3500);
+}
+
+async function uploadToStorage(file, path){
+  try{
+    const {error} = await supabaseClient.storage.from('tonninyira-media').upload(path, file, {upsert:true});
+    if(error) throw error;
+    return supabaseClient.storage.from('tonninyira-media').getPublicUrl(path).data.publicUrl;
+  }catch(e){
+    console.log('Storage upload skipped (bucket not configured yet):', e.message||e);
+    return URL.createObjectURL(file); // local-only fallback so the preview still works this session
+  }
+}
+
+async function submitVendorForm(e){
+  e.preventDefault();
+  const f = e.target;
+  vendorCounter++;
+  const tid = 'TN-VD-' + String(vendorCounter).padStart(5,'0');
+
+  const items = [];
+  for(let i=1;i<=6;i++){
+    const name = document.getElementById('itemName'+i).value.trim();
+    if(!name) continue;
+    items.push({
+      name,
+      desc: document.getElementById('itemDesc'+i).value.trim(),
+      price: parseInt(document.getElementById('itemPrice'+i).value) || 0,
+    });
+  }
+
+  let logoUrl = null;
+  const logoFile = f.logoFile.files[0];
+  if(logoFile) logoUrl = await uploadToStorage(logoFile, `vendors/${tid}/logo-${logoFile.name}`);
+
+  const gallery = [];
+  for(let i=1;i<=4;i++){
+    const file = document.getElementById('galFile'+i).files[0];
+    if(!file) continue;
+    const url = await uploadToStorage(file, `vendors/${tid}/gallery-${i}-${file.name}`);
+    gallery.push({url, caption: document.getElementById('galCap'+i).value.trim(), type: file.type.startsWith('video/')?'video':'image'});
+  }
+
+  const record = {
+    tonninyira_id: tid, business_name: f.bizName.value.trim(), owner_name: f.ownerName.value.trim(),
+    phone: f.phone.value.trim(), location: f.location.value, category: f.category.value, subcategory: f.subcategory.value,
+    kcca_license: f.kcca.value.trim(), ura_tin: f.ura.value.trim(), unbs_cert: f.unbs.value.trim()||null,
+    logo_url: logoUrl, gallery, items, created_at: new Date().toISOString(),
+  };
+
+  try{ await supabaseClient.from('vendors').insert(record); }
+  catch(err){ console.log('Vendor row not saved (Supabase not configured yet):', err.message); }
+
+  document.getElementById('vendorSessionList').querySelector('.helper')?.remove();
+  document.getElementById('vendorSessionList').insertAdjacentHTML('afterbegin', `
+    <div class="session-card">
+      <div style="font-weight:800;">${record.business_name} <span class="verify-check">${ICONS.check}</span></div>
+      <div class="helper">${tid} · ${record.location} · ${items.length} item(s) · ${gallery.length} photo(s)</div>
+    </div>`);
+
+  f.reset();
+  ['logoPreview','galPrev1','galPrev2','galPrev3','galPrev4'].forEach(id=>document.getElementById(id).innerHTML = id==='logoPreview'?'Logo':'#'+id.slice(-1));
+  updateSubcatOptions();
+  showToast(`Stall registered — ${tid}`);
+}
+
+async function submitRiderForm(e){
+  e.preventDefault();
+  const f = e.target;
+  riderCounter++;
+  const tid = 'TN-RD-' + String(riderCounter).padStart(5,'0');
+  const nid = f.nid.value.trim();
+
+  let photoUrl = null;
+  const photoFile = f.riderPhoto.files[0];
+  if(photoFile) photoUrl = await uploadToStorage(photoFile, `riders/${tid}/${photoFile.name}`);
+
+  const record = {
+    tonninyira_id: tid, full_name: f.riderName.value.trim(), phone: f.riderPhone.value.trim(),
+    national_id: nid, photo_url: photoUrl, vehicle_type: f.vehicleType.value, plate_number: f.plate.value.trim(),
+    created_at: new Date().toISOString(),
+  };
+
+  try{ await supabaseClient.from('riders').insert(record); }
+  catch(err){ console.log('Rider row not saved (Supabase not configured yet):', err.message); }
+
+  document.getElementById('riderSessionList').querySelector('.helper')?.remove();
+  document.getElementById('riderSessionList').insertAdjacentHTML('afterbegin', `
+    <div class="session-card">
+      <div style="font-weight:800;">${record.full_name} <span class="verify-check">${ICONS.check}</span></div>
+      <div class="helper">${tid} · ${record.vehicle_type} ${record.plate_number} · NID ${maskNid(nid)}</div>
+    </div>`);
+
+  f.reset();
+  document.getElementById('riderPhotoPreview').innerHTML = 'Photo';
+  showToast(`Rider registered — ${tid}`);
+}
+
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+let supabaseClient;
+try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+catch(e){ supabaseClient = { from:()=>({insert:async()=>({})}), storage:{from:()=>({upload:async()=>({error:'no client'}), getPublicUrl:()=>({data:{publicUrl:''}})})} }; }
+</script>
+</body>
+</html>
