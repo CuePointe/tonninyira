@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Tonninyira — Local Vendors. Real Prices. Your Door.</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -84,6 +87,8 @@
   }
   .subcat-chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink);}
 
+  #marketBanner{overflow:hidden; border-bottom:1px solid rgba(243,232,216,0.08);}
+  #marketBanner svg{display:block; width:100%; height:auto;}
   .popular-wrap{padding:16px 16px 4px;}
   .popular-label{font-size:0.72rem; font-weight:800; letter-spacing:1.5px; color:var(--gold); margin-bottom:8px;}
   .popular-scroll{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px;}
@@ -274,6 +279,7 @@
   </div>
 </header>
 
+<div id="marketBanner"></div>
 <div id="catTabs" class="cat-tabs"></div>
 <div id="subcatRow" class="subcat-row"></div>
 <div id="popularWrap" class="popular-wrap"></div>
@@ -343,19 +349,9 @@ document.getElementById('navProfileIcon').innerHTML = ICONS.user;
 document.getElementById('confirmCheckIcon').innerHTML = ICONS.check;
 document.getElementById('confirmMotoIcon').innerHTML = ICONS.moto;
 function paintBrandSVG(){
-  document.getElementById('brandBadge').innerHTML = `
-    <svg viewBox="0 0 200 200" width="30" height="30">
-      <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
-      <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
-      <g transform="rotate(-10 148 70)">
-        <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
-        <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
-        <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
-        <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
-        <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
-        <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
-      </g>
-    </svg>`;
+  /* assets/logo.png missing -- hide the icon slot rather than fall back
+     to a design that isn't the one actually chosen for this brand. */
+  document.getElementById('brandBadge').style.display = 'none';
 }
 /* Real logo upload path: drop a file at assets/logo.png next to this HTML
    and it takes over automatically -- no code changes needed. Nothing there
@@ -578,6 +574,7 @@ function jumpToVendor(subKey, vendorId){
 function renderMain(){
   const el = document.getElementById('mainArea');
   const tabsShown = AppState.view==='shop';
+  document.getElementById('marketBanner').classList.toggle('hidden', !tabsShown);
   document.getElementById('catTabs').classList.toggle('hidden', !tabsShown);
   document.getElementById('subcatRow').classList.toggle('hidden', !tabsShown);
   document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
@@ -850,6 +847,52 @@ async function loadLiveRiders(){
     });
   }catch(e){ console.log('Live rider data unavailable yet:', e.message); }
 }
+
+/* Original illustrated market scene -- hand-built shapes, not a photograph
+   and not sourced from anyone else's work, so there's no licensing risk
+   in shipping it. Colorful tarps + a crowd of simple silhouettes stand in
+   for the real vendor photos that will replace this section over time as
+   stalls register with their own images (see register.html). */
+function buildMarketBanner(){
+  const W = 800, H = 150;
+  const tarpColors = ['#E23F25','#2C7A7B','#F5B400','#4C9A5B','#D9731A','#E23F25'];
+  let tarps = '', poles = '', produce = '', people = '';
+  const stallCount = 6, stallW = W/stallCount;
+
+  for(let i=0;i<stallCount;i++){
+    const x = i*stallW, color = tarpColors[i % tarpColors.length];
+    const tilt = (i%2===0) ? -5 : 4;
+    const yTop = 8 + (i%3)*5;
+    tarps += `<g transform="rotate(${tilt} ${x+stallW/2} ${yTop+18})">
+      <path d="M${x-6},${yTop+32} L${x+stallW*0.5},${yTop} L${x+stallW+6},${yTop+28} L${x+stallW+6},${yTop+38} L${x-6},${yTop+38} Z" fill="${color}" opacity="0.94"/>
+    </g>`;
+    poles += `<rect x="${x+stallW*0.12}" y="42" width="3" height="66" fill="#140E0B"/>`;
+    poles += `<rect x="${x+stallW*0.82}" y="42" width="3" height="66" fill="#140E0B"/>`;
+    if(i%2===0){
+      const produceColors = ['#E23F25','#F5B400','#4C9A5B'];
+      const cx = x + stallW*0.5;
+      for(let j=0;j<5;j++){
+        produce += `<circle cx="${cx-15+j*7.5}" cy="${104-(j%2)*5}" r="5.5" fill="${produceColors[(i+j)%produceColors.length]}"/>`;
+      }
+    }
+  }
+
+  const peopleCount = 15;
+  for(let i=0;i<peopleCount;i++){
+    const x = 10 + i*((W-20)/(peopleCount-1));
+    const scale = 0.75 + ((i*37)%5)*0.09;
+    people += `<g transform="translate(${x},148) scale(${scale})">
+      <circle cx="0" cy="-33" r="6.5" fill="#140E0B"/>
+      <path d="M-8,-4 Q0,-27 8,-4 L10,13 L-10,13 Z" fill="#140E0B"/>
+    </g>`;
+  }
+
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">
+    <rect width="${W}" height="${H}" fill="#1C1410"/>
+    ${tarps}${poles}${produce}${people}
+  </svg>`;
+}
+document.getElementById('marketBanner').innerHTML = buildMarketBanner();
 
 function renderAll(){ renderCatTabs(); renderSubcatChips(); renderPopular(); renderMain(); }
 renderAll();

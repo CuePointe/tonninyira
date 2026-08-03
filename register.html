@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonninyira — Register as a Vendor or Rider</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -81,10 +84,11 @@
 </header>
 
 <div class="wrap">
-  <div class="tabs">
+  <div class="tabs" id="tabSwitcher">
     <button class="tab-btn active" id="tabVendorBtn" onclick="showTab('vendor')">Register a Stall</button>
     <button class="tab-btn" id="tabRiderBtn" onclick="showTab('rider')">Register a Rider</button>
   </div>
+  <p id="switchLink" class="hidden" style="text-align:center; font-size:0.82rem; margin:14px 0 6px;"></p>
 
   <!-- ===================== VENDOR / STALL FORM ===================== -->
   <section id="vendorSection">
@@ -182,19 +186,7 @@ const ICONS = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
 };
 function paintBrandSVG(){
-  document.getElementById('brandBadge').innerHTML = `
-    <svg viewBox="0 0 200 200" width="26" height="26">
-      <path d="M30,138 Q66,182 102,138 Z" fill="#F5B400"/>
-      <ellipse cx="66" cy="138" rx="34" ry="9" fill="#C98F00"/>
-      <g transform="rotate(-10 148 70)">
-        <ellipse cx="148" cy="58" rx="24" ry="32" fill="#E23F25"/>
-        <ellipse cx="134" cy="112" rx="18" ry="24" fill="#E23F25"/>
-        <ellipse cx="128" cy="24" rx="6.5" ry="8.5" fill="#E23F25"/>
-        <ellipse cx="144" cy="18" rx="7" ry="9" fill="#E23F25"/>
-        <ellipse cx="160" cy="22" rx="6" ry="8" fill="#E23F25"/>
-        <ellipse cx="172" cy="32" rx="5.5" ry="7" fill="#E23F25"/>
-      </g>
-    </svg>`;
+  document.getElementById('brandBadge').style.display = 'none';
 }
 (function loadBrandLogo(){
   const img = new Image();
@@ -224,11 +216,26 @@ function showTab(tab){
   document.getElementById('tabRiderBtn').classList.toggle('active', tab==='rider');
 }
 
-/* Deep-link support: index.html links here with ?as=vendor or ?as=rider
-   so a customer tapping "Become a Rider" lands straight on that form. */
+/* Deep-link support: index.html links here with ?as=vendor or ?as=rider.
+   When that's how someone arrived, the choice is already made -- showing
+   both "Register a Stall" / "Register a Rider" tabs again would just be
+   asking the same question twice. So the tab pair disappears, the right
+   form shows immediately, and a single text link (not a second button)
+   covers "actually, wrong one." Only a bare visit to register.html with
+   no ?as= param gets the full tab-switcher, since there's no prior choice
+   to respect in that case. */
 (function openRequestedTab(){
   const params = new URLSearchParams(window.location.search);
-  if(params.get('as')==='rider') showTab('rider');
+  const requested = params.get('as');
+  if(requested==='vendor' || requested==='rider'){
+    showTab(requested);
+    document.getElementById('tabSwitcher').classList.add('hidden');
+    const other = requested==='vendor' ? 'rider' : 'vendor';
+    const otherLabel = other==='vendor' ? 'register a stall' : 'register as a rider';
+    const link = document.getElementById('switchLink');
+    link.classList.remove('hidden');
+    link.innerHTML = `<a href="register.html?as=${other}" style="color:var(--muted);">Meant to ${otherLabel} instead?</a>`;
+  }
 })();
 
 /* Build 4 gallery slots + 6 item rows once, up front */
