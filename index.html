@@ -369,6 +369,47 @@ function paintBrandSVG(){
    code changes needed. Tries the common places a file actually ends up
    before giving up, since a mismatched path/filename is the most likely
    reason a logo doesn't show after uploading it. */
+/* Match the tagline's width to the wordmark's, the way it's set in the
+   logo file -- measured after the real font has loaded, since measuring
+   too early (fallback font still showing) gives the wrong width. */
+function matchTaglineWidth(){
+  const word = document.querySelector('.brand-name');
+  const tag = document.querySelector('.brand-tag');
+  if(!word || !tag) return;
+  tag.style.letterSpacing = '0px';
+  const targetWidth = word.getBoundingClientRect().width;
+  const naturalWidth = tag.getBoundingClientRect().width;
+  const charGaps = tag.textContent.trim().length - 1;
+  if(charGaps <= 0) return;
+  const extra = (targetWidth - naturalWidth) / charGaps;
+  tag.style.letterSpacing = Math.max(-1, extra).toFixed(2) + 'px';
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchTaglineWidth);
+else window.addEventListener('load', matchTaglineWidth);
+
+/* Favicon needs the same robustness as the header logo -- a <link> tag has
+   no fallback of its own, so if the file isn't at exactly the path guessed,
+   it just silently fails and the tab/bookmark shows nothing custom. This
+   tries the likely spots and points the <link> at whichever one is real. */
+function setFaviconHref(href){
+  document.querySelectorAll("link[rel~='icon']").forEach(l=>l.remove());
+  const link = document.createElement('link');
+  link.rel = 'icon'; link.type = 'image/png'; link.href = href;
+  document.head.appendChild(link);
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon'; apple.href = href.replace('favicon-32','apple-touch-icon');
+  document.head.appendChild(apple);
+}
+function tryLoadFavicon(paths, i){
+  i = i || 0;
+  if(i >= paths.length) return; // none found -- browser just shows its own default, not broken
+  const img = new Image();
+  img.onload = () => { if(i > 0) setFaviconHref(paths[i]); }; // path 0 already matches the static <link> above, leave it alone
+  img.onerror = () => tryLoadFavicon(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadFavicon(['assets/favicon-32.png','favicon-32.png','Assets/favicon-32.png','images/favicon-32.png','assets/Favicon-32.png']);
+
 function tryLoadLogo(paths, i){
   i = i || 0;
   if(i >= paths.length){ paintBrandSVG(); return; }

@@ -47,7 +47,8 @@
   select option{background:var(--card);}
 
   .card{background:var(--card2); border-radius:14px; padding:14px; margin-top:10px; border:1px solid rgba(243,232,216,0.06);}
-  .item-row-form{display:grid; grid-template-columns:1.4fr 1fr 0.7fr auto; gap:8px; align-items:center;}
+  .item-row-form{display:grid; grid-template-columns:1.4fr 1fr 0.7fr; gap:8px; margin-bottom:8px;}
+  .item-row-form-ext{display:grid; grid-template-columns:1.4fr 1fr 0.7fr auto; gap:8px; align-items:center; margin-bottom:8px;}
   .item-row-remove{background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; line-height:1; padding:0 4px;}
   .btn-add-row{width:100%; padding:11px; border-radius:10px; border:1.5px dashed var(--gold); background:transparent; color:var(--gold); font-weight:700; font-size:0.86rem; cursor:pointer; margin-top:8px;}
   .file-slot{display:flex; gap:10px; align-items:flex-start; margin-top:10px;}
@@ -197,6 +198,40 @@ const ICONS = {
 function paintBrandSVG(){
   document.getElementById('brandBadge').style.display = 'none';
 }
+function matchTaglineWidth(){
+  const word = document.querySelector('.brand-name');
+  const tag = document.querySelector('.brand-tag');
+  if(!word || !tag) return;
+  tag.style.letterSpacing = '0px';
+  const targetWidth = word.getBoundingClientRect().width;
+  const naturalWidth = tag.getBoundingClientRect().width;
+  const charGaps = tag.textContent.trim().length - 1;
+  if(charGaps <= 0) return;
+  const extra = (targetWidth - naturalWidth) / charGaps;
+  tag.style.letterSpacing = Math.max(-1, extra).toFixed(2) + 'px';
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchTaglineWidth);
+else window.addEventListener('load', matchTaglineWidth);
+
+function setFaviconHref(href){
+  document.querySelectorAll("link[rel~='icon']").forEach(l=>l.remove());
+  const link = document.createElement('link');
+  link.rel = 'icon'; link.type = 'image/png'; link.href = href;
+  document.head.appendChild(link);
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon'; apple.href = href.replace('favicon-32','apple-touch-icon');
+  document.head.appendChild(apple);
+}
+function tryLoadFavicon(paths, i){
+  i = i || 0;
+  if(i >= paths.length) return;
+  const img = new Image();
+  img.onload = () => { if(i > 0) setFaviconHref(paths[i]); };
+  img.onerror = () => tryLoadFavicon(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadFavicon(['assets/favicon-32.png','favicon-32.png','Assets/favicon-32.png','images/favicon-32.png','assets/Favicon-32.png']);
+
 function tryLoadLogo(paths, i){
   i = i || 0;
   if(i >= paths.length){ paintBrandSVG(); return; }
@@ -250,7 +285,10 @@ function showTab(tab){
   }
 })();
 
-/* Build 4 gallery slots up front; commodities start with one row and grow via addItemRow() */
+/* Build 4 gallery slots and the original 6-row commodity template, unchanged
+   from before. addItemRow() is purely additive on top of that -- for a stall
+   selling more than 6 things -- and only those extra rows get a remove
+   button, since the base 6 are the template, not something to delete. */
 (function buildDynamicFields(){
   const gal = document.getElementById('galleryFields');
   for(let i=1;i<=4;i++){
@@ -265,17 +303,24 @@ function showTab(tab){
         </div>
       </div>`);
   }
-  addItemRow();
+  const items = document.getElementById('itemFields');
+  for(let i=1;i<=6;i++){
+    items.insertAdjacentHTML('beforeend', `
+      <div class="item-row-form" id="itemRow${i}">
+        <input type="text" id="itemName${i}" placeholder="${i===1?'Item name (required)':'Item name'}" ${i===1?'required':''}>
+        <input type="text" id="itemDesc${i}" placeholder="Short description">
+        <input type="number" id="itemPrice${i}" placeholder="UGX">
+      </div>`);
+  }
 })();
 
-let itemRowCount = 0;
+let itemRowCount = 6;
 function addItemRow(){
   itemRowCount++;
   const i = itemRowCount;
-  const isFirst = itemRowCount===1;
   document.getElementById('itemFields').insertAdjacentHTML('beforeend', `
-    <div class="item-row-form" id="itemRow${i}">
-      <input type="text" id="itemName${i}" placeholder="${isFirst?'Item name (required)':'Item name'}" ${isFirst?'required':''}>
+    <div class="item-row-form-ext" id="itemRow${i}">
+      <input type="text" id="itemName${i}" placeholder="Item name">
       <input type="text" id="itemDesc${i}" placeholder="Short description">
       <input type="number" id="itemPrice${i}" placeholder="UGX">
       <button type="button" class="item-row-remove" onclick="removeItemRow(${i})" title="Remove">&times;</button>
@@ -370,9 +415,17 @@ async function submitVendorForm(e){
 
   f.reset();
   ['logoPreview','galPrev1','galPrev2','galPrev3','galPrev4'].forEach(id=>document.getElementById(id).innerHTML = id==='logoPreview'?'Logo':'#'+id.slice(-1));
-  document.getElementById('itemFields').innerHTML = '';
-  itemRowCount = 0;
-  addItemRow();
+  const itemsBox = document.getElementById('itemFields');
+  itemsBox.innerHTML = '';
+  for(let i=1;i<=6;i++){
+    itemsBox.insertAdjacentHTML('beforeend', `
+      <div class="item-row-form" id="itemRow${i}">
+        <input type="text" id="itemName${i}" placeholder="${i===1?'Item name (required)':'Item name'}" ${i===1?'required':''}>
+        <input type="text" id="itemDesc${i}" placeholder="Short description">
+        <input type="number" id="itemPrice${i}" placeholder="UGX">
+      </div>`);
+  }
+  itemRowCount = 6;
   document.getElementById('vendorRegDate').value = todayStr;
   updateSubcatOptions();
   showToast(`Stall registered — ${tid}`);
