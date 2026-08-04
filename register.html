@@ -47,7 +47,10 @@
   select option{background:var(--card);}
 
   .card{background:var(--card2); border-radius:14px; padding:14px; margin-top:10px; border:1px solid rgba(243,232,216,0.06);}
-  .item-row-form{display:grid; grid-template-columns:1.4fr 1fr 0.7fr; gap:8px;}
+  .item-row-form{display:grid; grid-template-columns:1.4fr 1fr 0.7fr; gap:8px; margin-bottom:8px;}
+  .item-row-form-ext{display:grid; grid-template-columns:1.4fr 1fr 0.7fr auto; gap:8px; align-items:center; margin-bottom:8px;}
+  .item-row-remove{background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; line-height:1; padding:0 4px;}
+  .btn-add-row{width:100%; padding:11px; border-radius:10px; border:1.5px dashed var(--gold); background:transparent; color:var(--gold); font-weight:700; font-size:0.86rem; cursor:pointer; margin-top:8px;}
   .file-slot{display:flex; gap:10px; align-items:flex-start; margin-top:10px;}
   .file-preview{width:64px; height:64px; border-radius:10px; background:var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:0.65rem; text-align:center;}
   .file-preview img, .file-preview video{width:100%; height:100%; object-fit:cover;}
@@ -100,11 +103,14 @@
       <input type="text" name="ownerName" required>
       <label>Phone Number</label>
       <input type="tel" name="phone" required>
-      <label>Market / Location</label>
-      <select name="location" required>
-        <option>Kisugu</option><option>Kansanga</option><option>Ggaba</option><option>Namwongo</option>
-        <option>Owino Market</option><option>Bwaise</option><option>Entebbe</option><option>Kasangati</option><option>Jinja</option>
-      </select>
+      <label>Registration Date</label>
+      <input type="date" name="regDate" id="vendorRegDate" required>
+      <label>Market / Location <span class="opt">(pick a suggestion or type your own)</span></label>
+      <input type="text" name="location" list="locationSuggestions" required placeholder="e.g. Kisugu, or your own area">
+      <datalist id="locationSuggestions">
+        <option value="Kisugu"><option value="Kansanga"><option value="Ggaba"><option value="Namwongo">
+        <option value="Owino Market"><option value="Bwaise"><option value="Entebbe"><option value="Kasangati"><option value="Jinja">
+      </datalist>
       <label>Category</label>
       <select id="vCategory" name="category" onchange="updateSubcatOptions()">
         <option value="eats">Eats</option>
@@ -133,8 +139,9 @@
       <h3>Gallery <span class="opt" style="text-transform:none;">— photos or short videos of your stall, products, or yourself</span></h3>
       <div id="galleryFields"></div>
 
-      <h3>Commodities <span class="opt" style="text-transform:none;">— at least one to go live</span></h3>
+      <h3>Commodities <span class="opt" style="text-transform:none;">— add as many as you sell</span></h3>
       <div id="itemFields"></div>
+      <button type="button" class="btn-add-row" onclick="addItemRow()">+ Add Another Commodity</button>
 
       <button class="btn-primary" type="submit">Register My Stall &amp; Get My Tonninyira ID</button>
     </form>
@@ -162,12 +169,15 @@
           <input type="file" name="riderPhoto" accept="image/*" onchange="handleFilePreview(this, document.getElementById('riderPhotoPreview'))">
         </div>
       </div>
+      <label>Registration Date</label>
+      <input type="date" name="regDate" id="riderRegDate" required>
 
       <h3>Vehicle</h3>
-      <label>Vehicle Type</label>
-      <select name="vehicleType">
-        <option>Boda-boda</option><option>Bicycle</option><option>Van</option>
-      </select>
+      <label>Vehicle Type <span class="opt">(pick a suggestion or type your own)</span></label>
+      <input type="text" name="vehicleType" list="vehicleSuggestions" placeholder="e.g. Boda-boda">
+      <datalist id="vehicleSuggestions">
+        <option value="Boda-boda"><option value="Bicycle"><option value="Van"><option value="Tuktuk">
+      </datalist>
       <label>Plate / Registration Number</label>
       <input type="text" name="plate" required placeholder="e.g. UEB 245K">
 
@@ -188,16 +198,53 @@ const ICONS = {
 function paintBrandSVG(){
   document.getElementById('brandBadge').style.display = 'none';
 }
-(function loadBrandLogo(){
+function matchTaglineWidth(){
+  const word = document.querySelector('.brand-name');
+  const tag = document.querySelector('.brand-tag');
+  if(!word || !tag) return;
+  tag.style.letterSpacing = '0px';
+  const targetWidth = word.getBoundingClientRect().width;
+  const naturalWidth = tag.getBoundingClientRect().width;
+  const charGaps = tag.textContent.trim().length - 1;
+  if(charGaps <= 0) return;
+  const extra = (targetWidth - naturalWidth) / charGaps;
+  tag.style.letterSpacing = Math.max(-1, extra).toFixed(2) + 'px';
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchTaglineWidth);
+else window.addEventListener('load', matchTaglineWidth);
+
+function setFaviconHref(href){
+  document.querySelectorAll("link[rel~='icon']").forEach(l=>l.remove());
+  const link = document.createElement('link');
+  link.rel = 'icon'; link.type = 'image/png'; link.href = href;
+  document.head.appendChild(link);
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon'; apple.href = href.replace('favicon-32','apple-touch-icon');
+  document.head.appendChild(apple);
+}
+function tryLoadFavicon(paths, i){
+  i = i || 0;
+  if(i >= paths.length) return;
+  const img = new Image();
+  img.onload = () => { if(i > 0) setFaviconHref(paths[i]); };
+  img.onerror = () => tryLoadFavicon(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadFavicon(['assets/favicon-32.png','favicon-32.png','Assets/favicon-32.png','images/favicon-32.png','assets/Favicon-32.png']);
+
+function tryLoadLogo(paths, i){
+  i = i || 0;
+  if(i >= paths.length){ paintBrandSVG(); return; }
   const img = new Image();
   img.onload = () => {
     document.getElementById('brandBadge').innerHTML = '';
     img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
     document.getElementById('brandBadge').appendChild(img);
   };
-  img.onerror = paintBrandSVG;
-  img.src = 'assets/logo.png';
-})();
+  img.onerror = () => tryLoadLogo(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadLogo(['assets/logo.png','logo.png','Assets/logo.png','images/logo.png','assets/Logo.png']);
 
 const SUBCATS = {
   eats: [['breakfast','Breakfast'],['lunch','Lunch'],['fastfoods','Fast Foods']],
@@ -238,7 +285,10 @@ function showTab(tab){
   }
 })();
 
-/* Build 4 gallery slots + 6 item rows once, up front */
+/* Build 4 gallery slots and the original 6-row commodity template, unchanged
+   from before. addItemRow() is purely additive on top of that -- for a stall
+   selling more than 6 things -- and only those extra rows get a remove
+   button, since the base 6 are the template, not something to delete. */
 (function buildDynamicFields(){
   const gal = document.getElementById('galleryFields');
   for(let i=1;i<=4;i++){
@@ -256,13 +306,34 @@ function showTab(tab){
   const items = document.getElementById('itemFields');
   for(let i=1;i<=6;i++){
     items.insertAdjacentHTML('beforeend', `
-      <div class="item-row-form" style="margin-bottom:8px;">
+      <div class="item-row-form" id="itemRow${i}">
         <input type="text" id="itemName${i}" placeholder="${i===1?'Item name (required)':'Item name'}" ${i===1?'required':''}>
         <input type="text" id="itemDesc${i}" placeholder="Short description">
         <input type="number" id="itemPrice${i}" placeholder="UGX">
       </div>`);
   }
 })();
+
+let itemRowCount = 6;
+function addItemRow(){
+  itemRowCount++;
+  const i = itemRowCount;
+  document.getElementById('itemFields').insertAdjacentHTML('beforeend', `
+    <div class="item-row-form-ext" id="itemRow${i}">
+      <input type="text" id="itemName${i}" placeholder="Item name">
+      <input type="text" id="itemDesc${i}" placeholder="Short description">
+      <input type="number" id="itemPrice${i}" placeholder="UGX">
+      <button type="button" class="item-row-remove" onclick="removeItemRow(${i})" title="Remove">&times;</button>
+    </div>`);
+}
+function removeItemRow(i){
+  document.getElementById('itemRow'+i)?.remove();
+}
+
+/* Registration date defaults to today, still editable */
+const todayStr = new Date().toISOString().split('T')[0];
+document.getElementById('vendorRegDate').value = todayStr;
+document.getElementById('riderRegDate').value = todayStr;
 
 function handleFilePreview(inputEl, previewEl){
   const file = inputEl.files[0];
@@ -301,15 +372,16 @@ async function submitVendorForm(e){
   const tid = 'TN-VD-' + String(vendorCounter).padStart(5,'0');
 
   const items = [];
-  for(let i=1;i<=6;i++){
-    const name = document.getElementById('itemName'+i).value.trim();
-    if(!name) continue;
+  document.querySelectorAll('#itemFields [id^="itemName"]').forEach(nameInput=>{
+    const idx = nameInput.id.replace('itemName','');
+    const name = nameInput.value.trim();
+    if(!name) return;
     items.push({
       name,
-      desc: document.getElementById('itemDesc'+i).value.trim(),
-      price: parseInt(document.getElementById('itemPrice'+i).value) || 0,
+      desc: document.getElementById('itemDesc'+idx)?.value.trim() || '',
+      price: parseInt(document.getElementById('itemPrice'+idx)?.value) || 0,
     });
-  }
+  });
 
   let logoUrl = null;
   const logoFile = f.logoFile.files[0];
@@ -325,7 +397,8 @@ async function submitVendorForm(e){
 
   const record = {
     tonninyira_id: tid, business_name: f.bizName.value.trim(), owner_name: f.ownerName.value.trim(),
-    phone: f.phone.value.trim(), location: f.location.value, category: f.category.value, subcategory: f.subcategory.value,
+    phone: f.phone.value.trim(), registration_date: f.regDate.value,
+    location: f.location.value.trim(), category: f.category.value, subcategory: f.subcategory.value,
     kcca_license: f.kcca.value.trim(), ura_tin: f.ura.value.trim(), unbs_cert: f.unbs.value.trim()||null,
     logo_url: logoUrl, gallery, items, created_at: new Date().toISOString(),
   };
@@ -342,6 +415,18 @@ async function submitVendorForm(e){
 
   f.reset();
   ['logoPreview','galPrev1','galPrev2','galPrev3','galPrev4'].forEach(id=>document.getElementById(id).innerHTML = id==='logoPreview'?'Logo':'#'+id.slice(-1));
+  const itemsBox = document.getElementById('itemFields');
+  itemsBox.innerHTML = '';
+  for(let i=1;i<=6;i++){
+    itemsBox.insertAdjacentHTML('beforeend', `
+      <div class="item-row-form" id="itemRow${i}">
+        <input type="text" id="itemName${i}" placeholder="${i===1?'Item name (required)':'Item name'}" ${i===1?'required':''}>
+        <input type="text" id="itemDesc${i}" placeholder="Short description">
+        <input type="number" id="itemPrice${i}" placeholder="UGX">
+      </div>`);
+  }
+  itemRowCount = 6;
+  document.getElementById('vendorRegDate').value = todayStr;
   updateSubcatOptions();
   showToast(`Stall registered — ${tid}`);
 }
@@ -359,7 +444,8 @@ async function submitRiderForm(e){
 
   const record = {
     tonninyira_id: tid, full_name: f.riderName.value.trim(), phone: f.riderPhone.value.trim(),
-    national_id: nid, photo_url: photoUrl, vehicle_type: f.vehicleType.value, plate_number: f.plate.value.trim(),
+    national_id: nid, photo_url: photoUrl, registration_date: f.regDate.value,
+    vehicle_type: f.vehicleType.value.trim(), plate_number: f.plate.value.trim(),
     created_at: new Date().toISOString(),
   };
 
@@ -375,6 +461,7 @@ async function submitRiderForm(e){
 
   f.reset();
   document.getElementById('riderPhotoPreview').innerHTML = 'Photo';
+  document.getElementById('riderRegDate').value = todayStr;
   showToast(`Rider registered — ${tid}`);
 }
 

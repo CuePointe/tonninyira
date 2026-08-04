@@ -88,7 +88,18 @@
   .subcat-chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink);}
 
   #marketBanner{overflow:hidden; border-bottom:1px solid rgba(243,232,216,0.08);}
-  #marketBanner svg{display:block; width:100%; height:auto;}
+  .hero-gallery{position:relative; height:150px; overflow:hidden;}
+  .hero-track{display:flex; height:100%; transition:transform 0.6s ease;}
+  .hero-slide{flex:0 0 100%; position:relative; height:100%;}
+  .hero-slide img{width:100%; height:100%; object-fit:cover; display:block;}
+  .hero-caption{
+    position:absolute; left:0; right:0; bottom:0; padding:8px 14px;
+    background:linear-gradient(transparent, rgba(0,0,0,0.65));
+    color:var(--sand); font-size:0.74rem; font-weight:700;
+  }
+  .hero-dots{position:absolute; bottom:8px; left:0; right:0; display:flex; justify-content:center; gap:5px; flex-wrap:wrap; padding:0 40px;}
+  .hero-dot{width:6px; height:6px; border-radius:50%; background:rgba(243,232,216,0.45); border:none; padding:0; cursor:pointer;}
+  .hero-dot.active{background:var(--gold); width:14px; border-radius:3px;}
   .popular-wrap{padding:16px 16px 4px;}
   .popular-label{font-size:0.72rem; font-weight:800; letter-spacing:1.5px; color:var(--gold); margin-bottom:8px;}
   .popular-scroll{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px;}
@@ -256,7 +267,7 @@
       <div class="brand-badge" id="brandBadge"></div>
       <div>
         <div class="brand-name display">TONNINYIRA</div>
-        <div class="brand-tag">LOCAL VENDORS · REAL PRICES · YOUR DOOR</div>
+        <div class="brand-tag">BRINGING LOCAL VENDORS TO YOUR DOORSTEP</div>
       </div>
     </div>
     <button class="icon-btn" id="cartIconBtn" aria-label="Cart">
@@ -353,20 +364,65 @@ function paintBrandSVG(){
      to a design that isn't the one actually chosen for this brand. */
   document.getElementById('brandBadge').style.display = 'none';
 }
-/* Real logo upload path: drop a file at assets/logo.png next to this HTML
-   and it takes over automatically -- no code changes needed. Nothing there
-   yet (or it 404s) -> falls back to the built-in mark, so the header never
-   shows a broken image. */
-(function loadBrandLogo(){
+/* Real logo upload path: drop a file named logo.png next to this HTML (or
+   in an assets/ folder beside it) and it takes over automatically -- no
+   code changes needed. Tries the common places a file actually ends up
+   before giving up, since a mismatched path/filename is the most likely
+   reason a logo doesn't show after uploading it. */
+/* Match the tagline's width to the wordmark's, the way it's set in the
+   logo file -- measured after the real font has loaded, since measuring
+   too early (fallback font still showing) gives the wrong width. */
+function matchTaglineWidth(){
+  const word = document.querySelector('.brand-name');
+  const tag = document.querySelector('.brand-tag');
+  if(!word || !tag) return;
+  tag.style.letterSpacing = '0px';
+  const targetWidth = word.getBoundingClientRect().width;
+  const naturalWidth = tag.getBoundingClientRect().width;
+  const charGaps = tag.textContent.trim().length - 1;
+  if(charGaps <= 0) return;
+  const extra = (targetWidth - naturalWidth) / charGaps;
+  tag.style.letterSpacing = Math.max(-1, extra).toFixed(2) + 'px';
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchTaglineWidth);
+else window.addEventListener('load', matchTaglineWidth);
+
+/* Favicon needs the same robustness as the header logo -- a <link> tag has
+   no fallback of its own, so if the file isn't at exactly the path guessed,
+   it just silently fails and the tab/bookmark shows nothing custom. This
+   tries the likely spots and points the <link> at whichever one is real. */
+function setFaviconHref(href){
+  document.querySelectorAll("link[rel~='icon']").forEach(l=>l.remove());
+  const link = document.createElement('link');
+  link.rel = 'icon'; link.type = 'image/png'; link.href = href;
+  document.head.appendChild(link);
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon'; apple.href = href.replace('favicon-32','apple-touch-icon');
+  document.head.appendChild(apple);
+}
+function tryLoadFavicon(paths, i){
+  i = i || 0;
+  if(i >= paths.length) return; // none found -- browser just shows its own default, not broken
+  const img = new Image();
+  img.onload = () => { if(i > 0) setFaviconHref(paths[i]); }; // path 0 already matches the static <link> above, leave it alone
+  img.onerror = () => tryLoadFavicon(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadFavicon(['assets/favicon-32.png','favicon-32.png','Assets/favicon-32.png','images/favicon-32.png','assets/Favicon-32.png']);
+
+function tryLoadLogo(paths, i){
+  i = i || 0;
+  if(i >= paths.length){ paintBrandSVG(); return; }
   const img = new Image();
   img.onload = () => {
     document.getElementById('brandBadge').innerHTML = '';
     img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
     document.getElementById('brandBadge').appendChild(img);
   };
-  img.onerror = paintBrandSVG;
-  img.src = 'assets/logo.png';
-})();
+  img.onerror = () => tryLoadLogo(paths, i+1);
+  img.src = paths[i];
+}
+tryLoadLogo(['assets/logo.png','logo.png','Assets/logo.png','images/logo.png','assets/Logo.png']);
 
 const CATALOG = {
   eats: { label:"Eats", subs: {
@@ -848,51 +904,54 @@ async function loadLiveRiders(){
   }catch(e){ console.log('Live rider data unavailable yet:', e.message); }
 }
 
-/* Original illustrated market scene -- hand-built shapes, not a photograph
-   and not sourced from anyone else's work, so there's no licensing risk
-   in shipping it. Colorful tarps + a crowd of simple silhouettes stand in
-   for the real vendor photos that will replace this section over time as
-   stalls register with their own images (see register.html). */
-function buildMarketBanner(){
-  const W = 800, H = 150;
-  const tarpColors = ['#E23F25','#2C7A7B','#F5B400','#4C9A5B','#D9731A','#E23F25'];
-  let tarps = '', poles = '', produce = '', people = '';
-  const stallCount = 6, stallW = W/stallCount;
+/* Demo banner photos -- placeholders per your direction, swap the files in
+   assets/market/ for your own licensed shots whenever you're ready.
+   To add more later (up to however many you want -- 20, 50, no limit):
+   1) upload the image to assets/market/ (e.g. assets/market/4.jpg)
+   2) add one line to this array: {src:'assets/market/4.jpg', caption:'...'}
+   That's the whole change -- the slider, dots, and timer all read from
+   this array's length, nothing else needs touching. */
+const MARKET_PHOTOS = [
+  {src:'assets/market/1.jpg', caption:'Owino Market, Kampala'},
+  {src:'assets/market/2.jpg', caption:'Fresh produce, daily'},
+  {src:'assets/market/3.jpg', caption:'Real vendors, real stalls'},
+];
 
-  for(let i=0;i<stallCount;i++){
-    const x = i*stallW, color = tarpColors[i % tarpColors.length];
-    const tilt = (i%2===0) ? -5 : 4;
-    const yTop = 8 + (i%3)*5;
-    tarps += `<g transform="rotate(${tilt} ${x+stallW/2} ${yTop+18})">
-      <path d="M${x-6},${yTop+32} L${x+stallW*0.5},${yTop} L${x+stallW+6},${yTop+28} L${x+stallW+6},${yTop+38} L${x-6},${yTop+38} Z" fill="${color}" opacity="0.94"/>
-    </g>`;
-    poles += `<rect x="${x+stallW*0.12}" y="42" width="3" height="66" fill="#140E0B"/>`;
-    poles += `<rect x="${x+stallW*0.82}" y="42" width="3" height="66" fill="#140E0B"/>`;
-    if(i%2===0){
-      const produceColors = ['#E23F25','#F5B400','#4C9A5B'];
-      const cx = x + stallW*0.5;
-      for(let j=0;j<5;j++){
-        produce += `<circle cx="${cx-15+j*7.5}" cy="${104-(j%2)*5}" r="5.5" fill="${produceColors[(i+j)%produceColors.length]}"/>`;
-      }
-    }
-  }
-
-  const peopleCount = 15;
-  for(let i=0;i<peopleCount;i++){
-    const x = 10 + i*((W-20)/(peopleCount-1));
-    const scale = 0.75 + ((i*37)%5)*0.09;
-    people += `<g transform="translate(${x},148) scale(${scale})">
-      <circle cx="0" cy="-33" r="6.5" fill="#140E0B"/>
-      <path d="M-8,-4 Q0,-27 8,-4 L10,13 L-10,13 Z" fill="#140E0B"/>
-    </g>`;
-  }
-
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">
-    <rect width="${W}" height="${H}" fill="#1C1410"/>
-    ${tarps}${poles}${produce}${people}
-  </svg>`;
+let heroIndex = 0, heroTimer = null;
+function renderHeroGallery(){
+  document.getElementById('heroTrack').innerHTML = MARKET_PHOTOS.map(p=>`
+    <div class="hero-slide">
+      <img src="${p.src}" alt="${p.caption}" loading="lazy">
+      <div class="hero-caption">${p.caption}</div>
+    </div>`).join('');
+  document.getElementById('heroDots').innerHTML = MARKET_PHOTOS.map((_,i)=>
+    `<button class="hero-dot" onclick="goToHeroSlide(${i})" aria-label="Slide ${i+1}"></button>`).join('');
+  updateHeroPosition();
 }
-document.getElementById('marketBanner').innerHTML = buildMarketBanner();
+function updateHeroPosition(){
+  document.getElementById('heroTrack').style.transform = `translateX(-${heroIndex*100}%)`;
+  document.querySelectorAll('.hero-dot').forEach((d,i)=>d.classList.toggle('active', i===heroIndex));
+}
+function goToHeroSlide(i){
+  heroIndex = i;
+  updateHeroPosition();
+  restartHeroTimer();
+}
+function restartHeroTimer(){
+  if(heroTimer) clearInterval(heroTimer);
+  if(MARKET_PHOTOS.length <= 1) return;
+  heroTimer = setInterval(()=>{
+    heroIndex = (heroIndex+1) % MARKET_PHOTOS.length;
+    updateHeroPosition();
+  }, 4000);
+}
+document.getElementById('marketBanner').innerHTML = `
+  <div class="hero-gallery">
+    <div class="hero-track" id="heroTrack"></div>
+    <div class="hero-dots" id="heroDots"></div>
+  </div>`;
+renderHeroGallery();
+restartHeroTimer();
 
 function renderAll(){ renderCatTabs(); renderSubcatChips(); renderPopular(); renderMain(); }
 renderAll();
