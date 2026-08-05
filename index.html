@@ -38,7 +38,7 @@
   }
   .brand-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
   .brand-lockup{display:flex; align-items:center; gap:10px;}
-  .brand-badge{width:42px;height:42px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-badge{width:60px;height:60px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brand-name{font-size:1.4rem; letter-spacing:0.5px; color:var(--sand); line-height:1;}
   .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:3px;}
   .icon-btn{
@@ -56,11 +56,11 @@
     margin-top:12px; display:flex; align-items:center; gap:8px;
     background:var(--card); border-radius:12px; padding:9px 12px;
   }
-  .location-row select{
+  .location-row input{
     flex:1; background:transparent; border:none; color:var(--sand); font-family:'Work Sans'; font-weight:600; font-size:0.9rem;
   }
-  .location-row select:focus{outline:none;}
-  .location-row option{background:var(--card); color:var(--sand);}
+  .location-row input::placeholder{color:var(--muted); font-weight:500;}
+  .location-row input:focus{outline:none;}
 
   .search-row{margin-top:12px; position:relative;}
   .search-row input{
@@ -84,7 +84,9 @@
   .subcat-chip{
     flex-shrink:0; padding:8px 16px; border-radius:999px; border:1.5px solid var(--card2);
     background:transparent; color:var(--sand); font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:6px;
   }
+  .subcat-chip svg{width:15px; height:15px; flex-shrink:0;}
   .subcat-chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink);}
 
   #marketBanner{overflow:hidden; border-bottom:1px solid rgba(243,232,216,0.08);}
@@ -266,8 +268,8 @@
     <div class="brand-lockup">
       <div class="brand-badge" id="brandBadge"></div>
       <div>
-        <div class="brand-name display">TONNINYIRA</div>
-        <div class="brand-tag">BRINGING LOCAL VENDORS TO YOUR DOORSTEP</div>
+        <div class="brand-name display">Tonninyira</div>
+        <div class="brand-tag">Bringing Local Vendors to Your Doorstep</div>
       </div>
     </div>
     <button class="icon-btn" id="cartIconBtn" aria-label="Cart">
@@ -278,10 +280,11 @@
 
   <div class="location-row">
     <span id="pinIconSvg"></span>
-    <select id="areaSelect">
-      <option>Kisugu</option><option>Kansanga</option><option>Ggaba</option>
-      <option>Namwongo</option><option>Entebbe</option><option>Kasangati</option><option>Jinja</option>
-    </select>
+    <input type="text" id="areaSelect" list="areaSuggestions" placeholder="Where are you? Type your area" value="Kisugu">
+    <datalist id="areaSuggestions">
+      <option value="Kisugu"><option value="Kansanga"><option value="Ggaba">
+      <option value="Namwongo"><option value="Entebbe"><option value="Kasangati"><option value="Jinja">
+    </datalist>
   </div>
 
   <div class="search-row">
@@ -349,6 +352,12 @@ const ICONS = {
   phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
   emptyCart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`,
   box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
+  sunrise: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>`,
+  bowl: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 4 0 0 0 16 0"/><path d="M3 12h18"/></svg>`,
+  bolt: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>`,
+  leaf: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4-1-7-5-7-10 0-3 2-6 7-8 5 2 7 5 7 8 0 5-3 9-7 10z"/><path d="M12 21V8"/></svg>`,
+  sack: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9h10l-1 10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg>`,
+  hanger: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4a1 1 0 1 0 1 1"/><path d="M6 14 12 8l6 6"/><path d="M3 17h18"/></svg>`,
 };
 document.getElementById('cartIconSvg').innerHTML = ICONS.cart;
 document.getElementById('pinIconSvg').innerHTML = ICONS.pin;
@@ -584,10 +593,16 @@ function selectCategory(catKey){
   document.getElementById('searchInput').value = '';
   renderAll();
 }
+const SUBCAT_ICONS = {
+  breakfast:'sunrise', lunch:'bowl', fastfoods:'bolt',
+  groceries:'leaf', rawfoods:'sack', mivumba:'hanger',
+};
 function renderSubcatChips(){
   const subs = CATALOG[AppState.category].subs;
   document.getElementById('subcatRow').innerHTML = Object.keys(subs).map(subKey=>`
-    <button class="subcat-chip ${subKey===AppState.subcategory?'active':''}" onclick="selectSubcategory('${subKey}')">${subs[subKey].label}</button>
+    <button class="subcat-chip ${subKey===AppState.subcategory?'active':''}" onclick="selectSubcategory('${subKey}')">
+      ${ICONS[SUBCAT_ICONS[subKey]]||''} ${subs[subKey].label}
+    </button>
   `).join('');
 }
 function selectSubcategory(subKey){
