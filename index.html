@@ -381,20 +381,23 @@ function paintBrandSVG(){
 /* Match the tagline's width to the wordmark's, the way it's set in the
    logo file -- measured after the real font has loaded, since measuring
    too early (fallback font still showing) gives the wrong width. */
-function matchTaglineWidth(){
+/* Enlarges "Tonninyira" until its rendered width matches the tagline's own
+   natural width -- the tagline is never touched. (Previous version did this
+   backwards: it letter-spaced the tagline to match the wordmark instead.)
+   Clamped to a sane range so a font-load hiccup can't blow the size out. */
+function matchWordmarkWidth(){
   const word = document.querySelector('.brand-name');
   const tag = document.querySelector('.brand-tag');
   if(!word || !tag) return;
-  tag.style.letterSpacing = '0px';
-  const targetWidth = word.getBoundingClientRect().width;
-  const naturalWidth = tag.getBoundingClientRect().width;
-  const charGaps = tag.textContent.trim().length - 1;
-  if(charGaps <= 0) return;
-  const extra = (targetWidth - naturalWidth) / charGaps;
-  tag.style.letterSpacing = Math.max(-1, extra).toFixed(2) + 'px';
+  const tagWidth = tag.getBoundingClientRect().width;
+  const wordWidth = word.getBoundingClientRect().width;
+  if(wordWidth <= 0 || tagWidth <= 0) return;
+  const currentSize = parseFloat(getComputedStyle(word).fontSize);
+  const scale = Math.min(3, Math.max(0.5, tagWidth / wordWidth));
+  word.style.fontSize = (currentSize * scale).toFixed(2) + 'px';
 }
-if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchTaglineWidth);
-else window.addEventListener('load', matchTaglineWidth);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchWordmarkWidth);
+else window.addEventListener('load', matchWordmarkWidth);
 
 /* Favicon needs the same robustness as the header logo -- a <link> tag has
    no fallback of its own, so if the file isn't at exactly the path guessed,
