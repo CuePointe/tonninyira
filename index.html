@@ -269,7 +269,7 @@
       <div class="brand-badge" id="brandBadge"></div>
       <div>
         <div class="brand-name display">Tonninyira</div>
-        <div class="brand-tag">Bringing Local Vendors to Your Doorstep</div>
+        <div class="brand-tag">Bringing Local Vendors to Your doorstep</div>
       </div>
     </div>
     <button class="icon-btn" id="cartIconBtn" aria-label="Cart">
@@ -655,6 +655,7 @@ function renderMain(){
     el.innerHTML = `
       <div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>
       <div style="padding:0 16px 24px; max-width:420px; margin:0 auto;">
+        <a href="vendor-dashboard.html" class="btn-secondary" style="display:block; text-align:center; text-decoration:none; border-color:var(--gold); color:var(--gold);">Already Registered? Manage My Stall</a>
         <a href="register.html?as=vendor" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Become a Vendor — Register Your Stall</a>
         <a href="register.html?as=rider" class="btn-secondary" style="display:block; text-align:center; text-decoration:none;">Become a Rider — Register to Deliver</a>
       </div>`;
@@ -842,11 +843,25 @@ async function completeOrder(method){
   document.getElementById('confirmOverlay').classList.remove('hidden');
   document.getElementById('confirmSheet').classList.remove('hidden');
 
+  /* One checkout can span several stalls (a real mixed market basket), but a
+     vendor should only ever see their own items to fulfil -- not the whole
+     order. So one checkout becomes one 'orders' row per vendor, all sharing
+     this same order_id as the group reference the customer sees. Vendors
+     query their own rows by vendor_id from vendor-dashboard.html. */
+  const area = document.getElementById('areaSelect').value;
+  const byVendor = {};
+  AppState.cart.forEach(c=>{
+    if(!byVendor[c.vendorId]) byVendor[c.vendorId] = {vendorName: c.vendorName, items: []};
+    byVendor[c.vendorId].items.push(c);
+  });
   try{
-    await supabaseClient.from('orders').insert({
-      order_id: orderId, items: AppState.cart, subtotal, payment_method: method,
-      area: document.getElementById('areaSelect').value, rider_tid: rider.tid, created_at: new Date().toISOString(),
-    });
+    const rows = Object.entries(byVendor).map(([vendorId, group])=>({
+      order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
+      items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
+      payment_method: method, customer_area: area, rider_tid: rider.tid,
+      status: 'new', created_at: new Date().toISOString(),
+    }));
+    await supabaseClient.from('orders').insert(rows);
   }catch(e){ console.log('Order log skipped (Supabase not configured):', e.message); }
 
   AppState.cart = [];
@@ -882,11 +897,13 @@ try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_K
 catch(e){ supabaseClient = { from:()=>({insert:async()=>({}), select:async()=>({data:null,error:'no client'})}) }; }
 
 /* Pulls real registered stalls (with their own logo/gallery/items) from the
-   'vendors' table your admin console writes to. Silently does nothing if
-   Supabase isn't configured yet or the table is empty. */
+   'vendors_public' view -- not the raw 'vendors' table, which now also holds
+   phone numbers and pin_hash for dashboard login. Same pattern as
+   loadLiveRiders() below already uses for riders_public. Silently does
+   nothing if Supabase isn't configured yet or the table is empty. */
 async function loadLiveVendors(){
   try{
-    const {data, error} = await supabaseClient.from('vendors').select('*');
+    const {data, error} = await supabaseClient.from('vendors_public').select('*');
     if(error || !data || !data.length) return;
     data.forEach((rv, idx)=>{
       const catKey = rv.category, subKey = rv.subcategory;
@@ -919,19 +936,38 @@ async function loadLiveRiders(){
   }catch(e){ console.log('Live rider data unavailable yet:', e.message); }
 }
 
-/* Demo banner photos -- placeholders per your direction, swap the files in
-   assets/market/ for your own licensed shots whenever you're ready.
-   To add more later (up to however many you want -- 20, 50, no limit):
-   1) upload the image to assets/market/ (e.g. assets/market/4.jpg)
-   2) add one line to this array: {src:'assets/market/4.jpg', caption:'...'}
-   That's the whole change -- the slider, dots, and timer all read from
-   this array's length, nothing else needs touching. */
-const MARKET_PHOTOS = [
-  {src:'assets/market/1.jpg', caption:'Owino Market, Kampala'},
-  {src:'assets/market/2.jpg', caption:'Fresh produce, daily'},
-  {src:'assets/market/3.jpg', caption:'Real vendors, real stalls'},
-];
+/* Market banner photos -- AUTO-DETECTED, no code edits needed anymore.
+   To add a photo: just upload it to assets/market/ as the next number in
+   line (4.jpg, 5.jpg, 6.jpg...) and it appears in the rotation next time
+   the page loads. Nothing else to touch.
+   Optional: give a specific photo its own caption below (keyed by number).
+   Anything not listed here gets a plain default caption. */
+const MARKET_CAPTIONS = {
+  1: 'Owino Market, Kampala',
+  2: 'Fresh produce, daily',
+  3: 'Real vendors, real stalls',
+};
+const MARKET_PHOTO_SCAN_LIMIT = 30; // raise this if you ever pass 30 photos
 
+function probeImage(src){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = ()=>resolve(true);
+    img.onerror = ()=>resolve(false);
+    img.src = src;
+  });
+}
+async function detectMarketPhotos(){
+  const checks = [];
+  for(let i=1;i<=MARKET_PHOTO_SCAN_LIMIT;i++){
+    checks.push(probeImage(`assets/market/${i}.jpg`).then(ok=>ok?i:null));
+  }
+  const found = (await Promise.all(checks)).filter(i=>i!==null);
+  if(!found.length) return [{src:'assets/market/1.jpg', caption:'Owino Market, Kampala'}];
+  return found.map(i=>({src:`assets/market/${i}.jpg`, caption: MARKET_CAPTIONS[i] || 'Real market, Kampala'}));
+}
+
+let MARKET_PHOTOS = [];
 let heroIndex = 0, heroTimer = null;
 function renderHeroGallery(){
   document.getElementById('heroTrack').innerHTML = MARKET_PHOTOS.map(p=>`
@@ -965,8 +1001,11 @@ document.getElementById('marketBanner').innerHTML = `
     <div class="hero-track" id="heroTrack"></div>
     <div class="hero-dots" id="heroDots"></div>
   </div>`;
-renderHeroGallery();
-restartHeroTimer();
+detectMarketPhotos().then(photos=>{
+  MARKET_PHOTOS = photos;
+  renderHeroGallery();
+  restartHeroTimer();
+});
 
 function renderAll(){ renderCatTabs(); renderSubcatChips(); renderPopular(); renderMain(); }
 renderAll();
