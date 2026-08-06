@@ -103,6 +103,8 @@
       <input type="text" name="ownerName" required>
       <label>Phone Number</label>
       <input type="tel" name="phone" required>
+      <label>Set a 4-Digit PIN <span class="opt">(this + your phone number logs you into your stall dashboard later)</span></label>
+      <input type="tel" name="vendorPin" id="vendorPin" required pattern="\d{4}" maxlength="4" inputmode="numeric" placeholder="e.g. 4821">
       <label>Registration Date</label>
       <input type="date" name="regDate" id="vendorRegDate" required>
       <label>Market / Location <span class="opt">(pick a suggestion or type your own)</span></label>
@@ -365,6 +367,15 @@ async function uploadToStorage(file, path){
   }
 }
 
+/* Strip spaces/dashes so "0772 123 456" and "0772123456" hash the same way --
+   vendor-dashboard.html normalizes identically before checking a login. */
+function normalizePhone(p){ return (p||'').replace(/[\s-]/g,''); }
+async function hashPin(phone, pin){
+  const data = new TextEncoder().encode(normalizePhone(phone) + ':' + pin.trim());
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 async function submitVendorForm(e){
   e.preventDefault();
   const f = e.target;
@@ -395,9 +406,10 @@ async function submitVendorForm(e){
     gallery.push({url, caption: document.getElementById('galCap'+i).value.trim(), type: file.type.startsWith('video/')?'video':'image'});
   }
 
+  const pinHash = await hashPin(f.phone.value, f.vendorPin.value);
   const record = {
     tonninyira_id: tid, business_name: f.bizName.value.trim(), owner_name: f.ownerName.value.trim(),
-    phone: f.phone.value.trim(), registration_date: f.regDate.value,
+    phone: f.phone.value.trim(), pin_hash: pinHash, registration_date: f.regDate.value,
     location: f.location.value.trim(), category: f.category.value, subcategory: f.subcategory.value,
     kcca_license: f.kcca.value.trim(), ura_tin: f.ura.value.trim(), unbs_cert: f.unbs.value.trim()||null,
     logo_url: logoUrl, gallery, items, created_at: new Date().toISOString(),
