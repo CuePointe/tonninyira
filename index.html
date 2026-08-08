@@ -28,6 +28,24 @@
   }
   .display{font-family:'Alfa Slab One',cursive;}
   .hidden{display:none !important;}
+  .identity-wrap{padding:20px 16px; text-align:center;}
+  .identity-wrap p{color:var(--muted); font-size:0.85rem;}
+  .identity-wrap label{display:block; text-align:left; font-size:0.8rem; font-weight:700; margin-top:14px;}
+  .identity-wrap input{width:100%; padding:12px; border-radius:10px; border:1px solid rgba(243,232,216,0.15); background:var(--card); color:var(--sand); font-family:'Work Sans'; font-size:0.92rem; margin-top:6px;}
+  .identity-wrap input:focus{outline:none; border-color:var(--gold);}
+  .order-group-card{background:var(--card2); border-radius:14px; padding:14px; margin:0 16px 14px; border-left:4px solid var(--gold);}
+  .order-vendor-line{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed rgba(243,232,216,0.08);}
+  .rate-btn{background:none; border:1px solid var(--gold); color:var(--gold); border-radius:8px; padding:7px 12px; font-size:0.76rem; font-weight:800; cursor:pointer; margin-top:8px; margin-right:6px;}
+  .reviewed-tag{font-size:0.72rem; color:var(--muted); font-style:italic; margin-top:8px; display:inline-block;}
+  .star-picker{display:flex; gap:6px; margin:10px 0; font-size:1.7rem;}
+  .star-picker span{cursor:pointer; color:rgba(243,232,216,0.25);}
+  .star-picker span.active{color:var(--gold);}
+  .review-form textarea{width:100%; padding:10px; border-radius:10px; border:1px solid rgba(243,232,216,0.15); background:var(--card); color:var(--sand); font-family:'Work Sans'; font-size:0.85rem; margin-top:4px; resize:vertical; min-height:56px;}
+  .status-pill{font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; padding:3px 9px; border-radius:14px; background:var(--card); color:var(--muted);}
+  .status-pill.status-new{background:var(--red); color:var(--sand);}
+  .status-pill.status-accepted, .status-pill.status-preparing{background:var(--gold); color:var(--ink);}
+  .status-pill.status-ready{background:var(--green); color:var(--sand);}
+  .status-pill.status-completed{background:var(--green); color:var(--sand); opacity:0.75;}
   svg.icon{width:20px;height:20px;flex-shrink:0;}
 
   header{
@@ -38,9 +56,10 @@
   }
   .brand-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
   .brand-lockup{display:flex; align-items:center; gap:10px;}
+  .brand-text{display:flex; flex-direction:column; align-items:flex-start;}
   .brand-badge{width:60px;height:60px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .brand-name{font-size:1.4rem; letter-spacing:0.5px; color:var(--sand); line-height:1;}
-  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:3px;}
+  .brand-name{font-size:1.4rem; letter-spacing:0.5px; color:var(--sand); line-height:1; background:var(--card); padding:7px 14px; border-radius:10px; display:inline-block;}
+  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:6px; background:var(--card); padding:3px 9px; border-radius:6px; display:inline-block;}
   .icon-btn{
     position:relative; width:44px; height:44px; border-radius:12px;
     background:var(--card); border:none; color:var(--sand);
@@ -267,9 +286,9 @@
   <div class="brand-row">
     <div class="brand-lockup">
       <div class="brand-badge" id="brandBadge"></div>
-      <div>
+      <div class="brand-text">
         <div class="brand-name display">Tonninyira</div>
-        <div class="brand-tag">Bringing Local Vendors to Your doorstep</div>
+        <div class="brand-tag">Affordable Fast Service</div>
       </div>
     </div>
     <button class="icon-btn" id="cartIconBtn" aria-label="Cart">
@@ -338,6 +357,20 @@
   <div style="padding:16px;"><button class="btn-primary" onclick="resetApp()">Back to Tonninyira</button></div>
 </div>
 
+<div id="identityOverlay" class="overlay hidden"></div>
+<div id="identitySheet" class="sheet hidden">
+  <div class="sheet-header"><h2>Quick Sign-In</h2><button class="close-x" onclick="closeIdentitySheet()">&times;</button></div>
+  <div class="identity-wrap">
+    <p>So you can find your orders later, and rate your stall and rider.</p>
+    <label>Your Name</label>
+    <input type="text" id="idName" placeholder="e.g. Grace">
+    <label>Phone Number</label>
+    <input type="tel" id="idPhone" placeholder="e.g. 0772 123 456">
+    <p id="identityError" class="hidden" style="color:var(--red); font-size:0.82rem; font-weight:700; margin-top:10px;">Enter your name and phone number.</p>
+    <button class="btn-primary" style="width:100%; margin-top:16px;" onclick="confirmIdentityAndContinue()">Continue</button>
+  </div>
+</div>
+
 <script>
 const ICONS = {
   search: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
@@ -381,19 +414,24 @@ function paintBrandSVG(){
 /* Match the tagline's width to the wordmark's, the way it's set in the
    logo file -- measured after the real font has loaded, since measuring
    too early (fallback font still showing) gives the wrong width. */
-/* Enlarges "Tonninyira" until its rendered width matches the tagline's own
-   natural width -- the tagline is never touched. (Previous version did this
-   backwards: it letter-spaced the tagline to match the wordmark instead.)
+/* Enlarges "Tonninyira" until its chip's OUTER width (glyphs + its own fixed
+   padding) matches the tagline chip's outer width -- the tagline is never
+   touched. Padding is fixed px and doesn't scale with font-size, so this
+   solves for glyph-width, not total width, before computing the ratio.
    Clamped to a sane range so a font-load hiccup can't blow the size out. */
 function matchWordmarkWidth(){
   const word = document.querySelector('.brand-name');
   const tag = document.querySelector('.brand-tag');
   if(!word || !tag) return;
-  const tagWidth = tag.getBoundingClientRect().width;
-  const wordWidth = word.getBoundingClientRect().width;
-  if(wordWidth <= 0 || tagWidth <= 0) return;
-  const currentSize = parseFloat(getComputedStyle(word).fontSize);
-  const scale = Math.min(3, Math.max(0.5, tagWidth / wordWidth));
+  const wordStyle = getComputedStyle(word);
+  const wordPad = parseFloat(wordStyle.paddingLeft) + parseFloat(wordStyle.paddingRight);
+  const tagBoxWidth = tag.getBoundingClientRect().width;
+  const wordBoxWidth = word.getBoundingClientRect().width;
+  const wordTextWidth = wordBoxWidth - wordPad;
+  if(wordTextWidth <= 0 || tagBoxWidth <= 0) return;
+  const currentSize = parseFloat(wordStyle.fontSize);
+  const targetTextWidth = tagBoxWidth - wordPad;
+  const scale = Math.min(3, Math.max(0.5, targetTextWidth / wordTextWidth));
   word.style.fontSize = (currentSize * scale).toFixed(2) + 'px';
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchWordmarkWidth);
@@ -653,10 +691,19 @@ function renderMain(){
   document.getElementById('subcatRow').classList.toggle('hidden', !tabsShown);
   document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
 
-  if(AppState.view==='orders'){ el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Your past orders will show up here once you place one.</p></div>`; return; }
+  if(AppState.view==='orders'){ renderMyOrders(); return; }
   if(AppState.view==='profile'){
-    el.innerHTML = `
-      <div class="placeholder">${ICONS.user}<h3>Your profile</h3><p>Name, phone number and saved addresses will live here.</p></div>
+    const custId = getCustomerIdentity();
+    const idBlock = custId
+      ? `<div class="placeholder">${ICONS.user}<h3>${custId.name}</h3><p>${custId.phone}</p></div>
+         <div style="padding:0 16px 10px; max-width:420px; margin:0 auto;">
+           <button class="btn-secondary" style="width:100%;" onclick="document.getElementById('identityOverlay').classList.remove('hidden'); document.getElementById('identitySheet').classList.remove('hidden');">Not You? Switch Account</button>
+         </div>`
+      : `<div class="placeholder">${ICONS.user}<h3>Not signed in</h3><p>Sign in to find your orders and rate your stalls and riders.</p></div>
+         <div style="padding:0 16px 10px; max-width:420px; margin:0 auto;">
+           <button class="btn-primary" style="width:100%;" onclick="document.getElementById('identityOverlay').classList.remove('hidden'); document.getElementById('identitySheet').classList.remove('hidden');">Sign In</button>
+         </div>`;
+    el.innerHTML = idBlock + `
       <div style="padding:0 16px 24px; max-width:420px; margin:0 auto;">
         <a href="vendor-dashboard.html" class="btn-secondary" style="display:block; text-align:center; text-decoration:none; border-color:var(--gold); color:var(--gold);">Already Registered? Manage My Stall</a>
         <a href="register.html?as=vendor" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Become a Vendor — Register Your Stall</a>
@@ -689,6 +736,115 @@ function renderSearchResults(){
     return;
   }
   el.innerHTML = `<div class="stall-list">${matches.map(v=>vendorCardHTML(v)).join('')}</div>`;
+}
+
+/* Customer's own order history -- grouped by order_id (one checkout can
+   span several vendor rows, but they all share one order_id and one
+   rider_tid). Rating is only offered once a row is 'completed', and only
+   once per target per order -- checked against the customer's own past
+   reviews so the same stall/rider can't be rated twice for one order. */
+async function renderMyOrders(){
+  const el = document.getElementById('mainArea');
+  const id = getCustomerIdentity();
+  if(!id || !id.name || !id.phone){
+    el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>See your orders</h3><p>Sign in with your name and phone number to find past orders and rate your stalls and riders.</p></div>
+      <div style="padding:0 16px;"><button class="btn-primary" style="width:100%;" onclick="document.getElementById('identityOverlay').classList.remove('hidden'); document.getElementById('identitySheet').classList.remove('hidden');">Sign In</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="placeholder"><h3>Loading your orders…</h3></div>`;
+  try{
+    const { data: orderRows, error } = await supabaseClient.from('orders').select('*')
+      .eq('customer_phone', id.phone).order('created_at', {ascending:false});
+    if(error) throw error;
+    const { data: myReviews } = await supabaseClient.from('reviews')
+      .select('target_type,target_id,order_id').eq('reviewer_phone', id.phone);
+    renderOrderGroups(orderRows||[], myReviews||[], id);
+  }catch(e){
+    el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>Couldn't load your orders</h3><p>${e.message||e}</p></div>`;
+  }
+}
+
+function renderOrderGroups(rows, myReviews, custId){
+  const el = document.getElementById('mainArea');
+  if(!rows.length){
+    el.innerHTML = `<div class="placeholder">${ICONS.box}<h3>No orders yet</h3><p>Signed in as ${custId.name}. Your past orders will show up here once you place one.</p></div>`;
+    return;
+  }
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.order_id] = groups[r.order_id]||[]).push(r); });
+  const reviewed = new Set(myReviews.map(r=>`${r.target_type}:${r.target_id}:${r.order_id}`));
+
+  el.innerHTML = Object.entries(groups).map(([orderId, group])=>{
+    const first = group[0];
+    const allDone = group.every(g=>g.status==='completed');
+    const vendorLines = group.map(g=>{
+      const already = reviewed.has(`vendor:${g.vendor_id}:${orderId}`);
+      const rateBtn = g.status==='completed'
+        ? (already ? `<span class="reviewed-tag">✓ You rated ${g.vendor_name}</span>`
+                   : `<button class="rate-btn" onclick="openRatingForm('vendor','${g.vendor_id}','${orderId}',${JSON.stringify(g.vendor_name)})">Rate ${g.vendor_name}</button>`)
+        : '';
+      return `<div class="order-vendor-line">
+          <div><strong>${g.vendor_name}</strong><div style="font-size:0.76rem; color:var(--muted);">${(g.items||[]).map(i=>i.name+' ×'+i.qty).join(', ')}</div></div>
+          <span class="status-pill status-${g.status}">${g.status}</span>
+        </div>${rateBtn ? `<div>${rateBtn}</div>` : ''}`;
+    }).join('');
+    const riderReviewed = reviewed.has(`rider:${first.rider_tid}:${orderId}`);
+    const riderBtn = !first.rider_tid ? '' : allDone
+      ? (riderReviewed ? `<span class="reviewed-tag">✓ You rated your rider</span>`
+                        : `<button class="rate-btn" onclick="openRatingForm('rider','${first.rider_tid}','${orderId}','your rider')">Rate Your Rider</button>`)
+      : '';
+    return `<div class="order-group-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <strong class="display" style="color:var(--gold); font-size:0.95rem;">${orderId}</strong>
+          <span style="font-size:0.72rem; color:var(--muted);">${new Date(first.created_at).toLocaleDateString()}</span>
+        </div>
+        ${vendorLines}
+        ${riderBtn ? `<div style="margin-top:8px; border-top:1px dashed rgba(243,232,216,0.08); padding-top:8px;">${riderBtn}</div>` : ''}
+        <div id="reviewSlot-${orderId}"></div>
+      </div>`;
+  }).join('');
+}
+
+let activeRatingStars = 0;
+function openRatingForm(targetType, targetId, orderId, label){
+  const slot = document.getElementById('reviewSlot-'+orderId);
+  activeRatingStars = 0;
+  slot.innerHTML = `
+    <div class="review-form" style="margin-top:10px;">
+      <p style="font-weight:700; font-size:0.85rem; margin:0 0 4px;">Rate ${label}</p>
+      <div class="star-picker" id="starPicker-${orderId}">
+        ${[1,2,3,4,5].map(n=>`<span onclick="setStars(${n},'${orderId}')" id="star-${orderId}-${n}">★</span>`).join('')}
+      </div>
+      <textarea id="reviewComment-${orderId}" placeholder="How was the quality and delivery speed?"></textarea>
+      <p id="reviewError-${orderId}" class="hidden" style="color:var(--red); font-size:0.78rem; font-weight:700; margin-top:4px;">Tap a star to rate first.</p>
+      <button class="btn-primary" style="margin-top:8px; padding:9px;" onclick="submitReview('${targetType}','${targetId}','${orderId}', this)">Submit Rating</button>
+    </div>`;
+}
+function setStars(n, orderId){
+  activeRatingStars = n;
+  for(let i=1;i<=5;i++) document.getElementById(`star-${orderId}-${i}`).classList.toggle('active', i<=n);
+}
+async function submitReview(targetType, targetId, orderId, btnEl){
+  const errEl = document.getElementById('reviewError-'+orderId);
+  if(activeRatingStars < 1){ errEl.classList.remove('hidden'); return; }
+  errEl.classList.add('hidden');
+  const comment = document.getElementById('reviewComment-'+orderId).value.trim();
+  const id = getCustomerIdentity();
+  btnEl.disabled = true; btnEl.textContent = 'Submitting…';
+  try{
+    const { error } = await supabaseClient.from('reviews').insert({
+      target_type: targetType, target_id: targetId, order_id: orderId,
+      reviewer_name: id.name, reviewer_phone: id.phone,
+      rating: activeRatingStars, comment, created_at: new Date().toISOString(),
+    });
+    if(error) throw error;
+    renderMyOrders();
+  }catch(e){
+    btnEl.disabled = false; btnEl.textContent = 'Submit Rating';
+    errEl.textContent = "Couldn't submit that rating — check your connection and try again.";
+    errEl.classList.remove('hidden');
+    console.log('Review submit error:', e.message||e);
+  }
 }
 
 function vendorCardHTML(v){
@@ -819,8 +975,51 @@ function openCart(){ document.getElementById('cartOverlay').classList.remove('hi
 function closeCart(){ document.getElementById('cartOverlay').classList.add('hidden'); document.getElementById('cartSheet').classList.add('hidden'); }
 document.getElementById('cartIconBtn').addEventListener('click', openCart);
 
+/* Lightweight customer identity -- name + phone, remembered locally. No
+   password: this is just enough to (a) tie an order to a real phone number
+   so "My Orders" can look it up later, and (b) gate reviews to someone who
+   actually has an order on file, not a full account system. */
+function normalizePhone(p){ return (p||'').replace(/[\s-]/g,''); }
+function getCustomerIdentity(){
+  try{ return JSON.parse(localStorage.getItem('tonninyira_customer')||'null'); }catch(e){ return null; }
+}
+function saveCustomerIdentity(name, phone){
+  const id = {name:name.trim(), phone:normalizePhone(phone)};
+  localStorage.setItem('tonninyira_customer', JSON.stringify(id));
+  return id;
+}
+let pendingCheckoutMethod = null;
+function closeIdentitySheet(){
+  document.getElementById('identityOverlay').classList.add('hidden');
+  document.getElementById('identitySheet').classList.add('hidden');
+  pendingCheckoutMethod = null;
+}
+function confirmIdentityAndContinue(){
+  const name = document.getElementById('idName').value.trim();
+  const phone = document.getElementById('idPhone').value.trim();
+  const err = document.getElementById('identityError');
+  if(!name || !phone){ err.classList.remove('hidden'); return; }
+  err.classList.add('hidden');
+  const id = saveCustomerIdentity(name, phone);
+  document.getElementById('identityOverlay').classList.add('hidden');
+  document.getElementById('identitySheet').classList.add('hidden');
+  if(pendingCheckoutMethod){ const m = pendingCheckoutMethod; pendingCheckoutMethod = null; finishOrder(m, id); }
+  else if(AppState.view==='orders'){ renderMyOrders(); }
+}
+
 async function completeOrder(method){
   if(AppState.cart.length===0) return;
+  const id = getCustomerIdentity();
+  if(!id || !id.name || !id.phone){
+    pendingCheckoutMethod = method;
+    document.getElementById('identityOverlay').classList.remove('hidden');
+    document.getElementById('identitySheet').classList.remove('hidden');
+    return;
+  }
+  finishOrder(method, id);
+}
+
+async function finishOrder(method, custId){
   const orderId = 'TN-' + Math.random().toString(36).substr(2,7).toUpperCase();
   const subtotal = cartSubtotal();
   closeCart();
@@ -862,6 +1061,7 @@ async function completeOrder(method){
       order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
       items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
       payment_method: method, customer_area: area, rider_tid: rider.tid,
+      customer_name: custId.name, customer_phone: custId.phone,
       status: 'new', created_at: new Date().toISOString(),
     }));
     await supabaseClient.from('orders').insert(rows);

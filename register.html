@@ -26,9 +26,10 @@
   header{background:var(--ink); border-bottom:1px solid rgba(243,232,216,0.08); padding:16px;}
   .brand-row{display:flex; align-items:center; gap:10px; max-width:640px; margin:0 auto; justify-content:space-between;}
   .brand-left{display:flex; align-items:center; gap:10px;}
+  .brand-text{display:flex; flex-direction:column; align-items:flex-start;}
   .brand-badge{width:56px;height:56px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .brand-name{font-size:1.15rem;}
-  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .brand-name{font-size:1.15rem; background:var(--card); padding:6px 12px; border-radius:9px; display:inline-block;}
+  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:6px; background:var(--card); padding:3px 9px; border-radius:6px; display:inline-block;}
   .back-link{color:var(--muted); font-size:0.82rem; font-weight:700; text-decoration:none; white-space:nowrap;}
   .back-link:hover{color:var(--sand);}
 
@@ -77,7 +78,7 @@
   <div class="brand-row">
     <div class="brand-left">
       <div class="brand-badge" id="brandBadge"></div>
-      <div>
+      <div class="brand-text">
         <div class="brand-name display">Tonninyira</div>
         <div class="brand-tag">Vendor &amp; Rider Sign-up</div>
       </div>
@@ -204,15 +205,24 @@ function paintBrandSVG(){
    natural width -- the tagline is never touched. (Previous version did this
    backwards: it letter-spaced the tagline to match the wordmark instead.)
    Clamped to a sane range so a font-load hiccup can't blow the size out. */
+/* Enlarges "Tonninyira" until its chip's OUTER width (glyphs + its own fixed
+   padding) matches the tagline chip's outer width -- the tagline is never
+   touched. Padding is fixed px and doesn't scale with font-size, so this
+   solves for glyph-width, not total width, before computing the ratio.
+   Clamped to a sane range so a font-load hiccup can't blow the size out. */
 function matchWordmarkWidth(){
   const word = document.querySelector('.brand-name');
   const tag = document.querySelector('.brand-tag');
   if(!word || !tag) return;
-  const tagWidth = tag.getBoundingClientRect().width;
-  const wordWidth = word.getBoundingClientRect().width;
-  if(wordWidth <= 0 || tagWidth <= 0) return;
-  const currentSize = parseFloat(getComputedStyle(word).fontSize);
-  const scale = Math.min(3, Math.max(0.5, tagWidth / wordWidth));
+  const wordStyle = getComputedStyle(word);
+  const wordPad = parseFloat(wordStyle.paddingLeft) + parseFloat(wordStyle.paddingRight);
+  const tagBoxWidth = tag.getBoundingClientRect().width;
+  const wordBoxWidth = word.getBoundingClientRect().width;
+  const wordTextWidth = wordBoxWidth - wordPad;
+  if(wordTextWidth <= 0 || tagBoxWidth <= 0) return;
+  const currentSize = parseFloat(wordStyle.fontSize);
+  const targetTextWidth = tagBoxWidth - wordPad;
+  const scale = Math.min(3, Math.max(0.5, targetTextWidth / wordTextWidth));
   word.style.fontSize = (currentSize * scale).toFixed(2) + 'px';
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchWordmarkWidth);
