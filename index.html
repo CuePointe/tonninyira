@@ -476,115 +476,18 @@ tryLoadLogo(['assets/logo.png','logo.png','Assets/logo.png','images/logo.png','a
 
 const CATALOG = {
   eats: { label:"Eats", subs: {
-    breakfast: { label:"Breakfast", vendors:[
-      { id:"v1", name:"Mama Rose's Corner", location:"Kisugu", rating:4.8, reviews:342, years:8, items:[
-        {id:"b1", name:"Rolex", desc:"Egg, tomato & onion in chapati", price:2500},
-        {id:"b2", name:"Mandazi (6 pcs)", desc:"Soft sugar-fried bread", price:2000},
-        {id:"b3", name:"Chapati (2 pcs)", desc:"Fresh off the pan", price:1500},
-        {id:"b4", name:"Milk Tea + Mandazi", desc:"Chai with 2 mandazi", price:2000},
-      ]},
-      { id:"v2", name:"Uncle Fred's Breakfast", location:"Kansanga", rating:4.9, reviews:521, years:15, items:[
-        {id:"b5", name:"Rolex Deluxe", desc:"Double egg, cheese, sausage", price:3800},
-        {id:"b6", name:"Beans on Toast", desc:"Stewed beans, 2 slices toast", price:2500},
-        {id:"b7", name:"Pancakes (4)", desc:"Fried, lightly sweet", price:2000},
-        {id:"b8", name:"Boiled Eggs (3)", desc:"Fresh farm eggs", price:1500},
-      ]},
-    ]},
-    lunch: { label:"Lunch", vendors:[
-      { id:"v3", name:"Fatima's Kitchen", location:"Ggaba", rating:4.9, reviews:612, years:12, items:[
-        {id:"l1", name:"Posho & Beans", desc:"Classic hot lunch plate", price:3500},
-        {id:"l2", name:"Rice & Beef Stew", desc:"With carrots & potatoes", price:4800},
-        {id:"l3", name:"Matoke & Fish", desc:"Steamed plantain, fried fish", price:6500},
-        {id:"l4", name:"Ugali & Sukuma", desc:"With greens & groundnut sauce", price:3000},
-      ]},
-      { id:"v4", name:"Sylvia's Homestyle", location:"Namwongo", rating:4.7, reviews:289, years:6, items:[
-        {id:"l5", name:"Chapati & Beef Curry", desc:"2 chapatis, rich sauce", price:3800},
-        {id:"l6", name:"Chicken & Rice", desc:"Half chicken, seasoned rice", price:5500},
-        {id:"l7", name:"Kikomando", desc:"Chapati & bean mix", price:3000},
-        {id:"l8", name:"Groundnut Stew & Posho", desc:"Peanut sauce, greens", price:3500},
-      ]},
-    ]},
-    fastfoods: { label:"Fast Foods", vendors:[
-      { id:"v5", name:"Grace's Grill", location:"Kisugu Market", rating:4.8, reviews:334, years:10, items:[
-        {id:"f1", name:"Fried Chicken (6 pcs)", desc:"Crispy, spiced", price:6000},
-        {id:"f2", name:"Chips & Sausage", desc:"Fries + grilled sausage", price:4000},
-        {id:"f3", name:"Fish Fry (2 pcs)", desc:"Tilapia, deep fried", price:6500},
-        {id:"f4", name:"Chicken & Chips Combo", desc:"2 pcs chicken + fries", price:6500},
-      ]},
-      { id:"v6", name:"John's Quick Bites", location:"Namwongo Roadside", rating:4.6, reviews:178, years:4, items:[
-        {id:"f5", name:"Samosa Pack (5)", desc:"Minced beef filling", price:2500},
-        {id:"f6", name:"Beef Skewers (3)", desc:"Grilled over charcoal", price:5000},
-        {id:"f7", name:"Spring Rolls (4)", desc:"Vegetable filling", price:3000},
-        {id:"f8", name:"Cabbage Rolls (3)", desc:"Lightly fried", price:2000},
-      ]},
-    ]},
+    breakfast: { label:"Breakfast", vendors:[] },
+    lunch: { label:"Lunch", vendors:[] },
+    fastfoods: { label:"Fast Foods", vendors:[] },
   }},
   shop: { label:"Shop", subs: {
-    groceries: { label:"Raw Foods", vendors:[
-      { id:"v7", name:"Owino Grains Corner", location:"Owino Market", rating:4.6, reviews:756, years:18, items:[
-        {id:"g1", name:"Posho (1kg)", desc:"Fine white maize flour", price:3500},
-        {id:"g2", name:"Dry Beans (2kg)", desc:"Sorted, clean", price:6000},
-        {id:"g3", name:"Cooking Oil (1L)", desc:"Vegetable oil", price:5000},
-        {id:"g4", name:"Sugar (1kg)", desc:"Fine white sugar", price:4500},
-      ]},
-      { id:"v8", name:"Kisugu Fresh Mart", location:"Kisugu", rating:4.5, reviews:298, years:9, items:[
-        {id:"g5", name:"Rice (2kg)", desc:"Long grain", price:8000},
-        {id:"g6", name:"Salt (500g)", desc:"Iodized", price:1000},
-        {id:"g7", name:"Tea Leaves (250g)", desc:"Local blend", price:3500},
-        {id:"g8", name:"Bar Soap (3 pcs)", desc:"Laundry soap", price:4000},
-      ]},
-      { id:"v15", name:"Ggaba Smokehouse", location:"Ggaba", rating:4.6, reviews:174, years:9, items:[
-        {id:"g9", name:"Dried Mukene (500g)", desc:"Sun-dried silver fish", price:5000},
-        {id:"g10", name:"Smoked Fish (Whole)", desc:"Slow-smoked over charcoal", price:8000},
-      ]},
-    ]},
-    rawfoods: { label:"Groceries", vendors:[
-      { id:"v9", name:"Owino Fresh Produce", location:"Owino Market", rating:4.5, reviews:892, years:20, items:[
-        {id:"r1", name:"Tomatoes (heap)", desc:"30+ pieces", price:4000},
-        {id:"r2", name:"Onions (bunch)", desc:"5-6 large bulbs", price:2500},
-        {id:"r3", name:"Sukuma Wiki", desc:"Fresh greens, bundle", price:2000},
-        {id:"r4", name:"Irish Potatoes (5kg)", desc:"Farm fresh", price:9000},
-      ]},
-      { id:"v10", name:"Ggaba Fish Landing", location:"Ggaba", rating:4.7, reviews:410, years:14, items:[
-        {id:"r5", name:"Fresh Tilapia (1kg)", desc:"Whole fish", price:12000},
-        {id:"r6", name:"Nile Perch (1kg)", desc:"Fillet cut", price:15000},
-        {id:"r7", name:"Fresh Nkejje (500g)", desc:"Small silver fish, sold fresh", price:6000},
-      ]},
-    ]},
-    mivumba: { label:"Mivumba/Second-Hand", vendors:[
-      { id:"v11", name:"Bwaise Bale Traders", location:"Bwaise", rating:4.4, reviews:203, years:7, items:[
-        {id:"m1", name:"Men's Shirts Bundle", desc:"Assorted, 20 pieces", price:60000},
-        {id:"m2", name:"Kids Wear Bundle", desc:"Mixed sizes, 25 pieces", price:45000},
-        {id:"m3", name:"Jeans Bundle", desc:"Assorted, 15 pairs", price:90000},
-        {id:"m4", name:"Ladies Tops Bundle", desc:"Assorted, 20 pieces", price:55000},
-      ]},
-      { id:"v12", name:"Owino Bale Corner", location:"Owino Market", rating:4.5, reviews:267, years:11, items:[
-        {id:"m5", name:"Ladies Dresses Bundle", desc:"Assorted, 15 pieces", price:70000},
-        {id:"m6", name:"Men's Trousers Bundle", desc:"Assorted, 12 pairs", price:80000},
-        {id:"m7", name:"Baby Clothes Bundle", desc:"0-2 yrs, 30 pieces", price:40000},
-        {id:"m8", name:"Sweaters Bundle", desc:"Assorted, 15 pieces", price:65000},
-      ]},
-      { id:"v13", name:"Kampala Kicks", location:"Kisugu", rating:4.6, reviews:189, years:5, items:[
-        {id:"sh1", name:"Nike Sneakers", desc:"Size 42, good condition", price:35000},
-        {id:"sh2", name:"Leather Loafers", desc:"Size 43", price:25000},
-        {id:"sh3", name:"Kids Shoes", desc:"Assorted sizes", price:15000},
-        {id:"sh4", name:"Running Shoes", desc:"Size 41", price:30000},
-      ]},
-      { id:"v14", name:"Vintage Corner", location:"Owino Market", rating:4.5, reviews:156, years:8, items:[
-        {id:"sh5", name:"Leather Handbag", desc:"Genuine leather", price:40000},
-        {id:"sh6", name:"Denim Jacket", desc:"Medium size", price:35000},
-        {id:"sh7", name:"Formal Shirt", desc:"Size L", price:15000},
-        {id:"sh8", name:"Backpack", desc:"Good condition", price:20000},
-      ]},
-    ]},
+    groceries: { label:"Raw Foods", vendors:[] },
+    rawfoods: { label:"Groceries", vendors:[] },
+    mivumba: { label:"Mivumba/Second-Hand", vendors:[] },
   }},
 };
 
-const SAMPLE_RIDERS = [
-  {tid:'TN-RD-00142', name:'Moses K.', vehicle:'Boda-boda · UEB 245K', rating:4.9},
-  {tid:'TN-RD-00098', name:'Grace N.', vehicle:'Boda-boda · UEC 512M', rating:4.8},
-  {tid:'TN-RD-00211', name:'Ibrahim S.', vehicle:'Boda-boda · UED 763P', rating:4.95},
-];
+const SAMPLE_RIDERS = [];
 
 const AppState = { category:"eats", subcategory:"breakfast", view:"shop", searchTerm:"", cart:[] };
 const AVATAR_COLORS = ['#E23F25','#F5B400','#4C9A5B','#C98F00','#B92E18'];
@@ -715,7 +618,9 @@ function renderMain(){
 
   const sub = CATALOG[AppState.category].subs[AppState.subcategory];
   const vendorsWithCtx = sub.vendors.map(v=>({...v, catKey:AppState.category, subKey:AppState.subcategory}));
-  el.innerHTML = `<div class="stall-list">${vendorsWithCtx.map(v=>vendorCardHTML(v)).join('')}</div>`;
+  el.innerHTML = vendorsWithCtx.length
+    ? `<div class="stall-list">${vendorsWithCtx.map(v=>vendorCardHTML(v)).join('')}</div>`
+    : `<div class="placeholder">${ICONS.box}<h3>No stalls here yet</h3><p>Nobody's registered in ${sub.label} yet — check back soon, or be the first from your Profile tab.</p></div>`;
 }
 
 function renderSearchResults(){
@@ -1020,10 +925,52 @@ async function completeOrder(method){
 }
 
 async function finishOrder(method, custId){
+  if(!SAMPLE_RIDERS.length){
+    closeCart();
+    alert("No delivery riders are registered yet, so orders can't be placed right now. Check back once a rider signs up from the Profile tab.");
+    return;
+  }
   const orderId = 'TN-' + Math.random().toString(36).substr(2,7).toUpperCase();
   const subtotal = cartSubtotal();
-  closeCart();
+  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
+  const area = document.getElementById('areaSelect').value;
 
+  /* One checkout can span several stalls (a real mixed market basket), but a
+     vendor should only ever see their own items to fulfil -- not the whole
+     order. So one checkout becomes one 'orders' row per vendor, all sharing
+     this same order_id as the group reference the customer sees. Vendors
+     query their own rows by vendor_id from vendor-dashboard.html. */
+  const byVendor = {};
+  AppState.cart.forEach(c=>{
+    if(!byVendor[c.vendorId]) byVendor[c.vendorId] = {vendorName: c.vendorName, items: []};
+    byVendor[c.vendorId].items.push(c);
+  });
+  const rows = Object.entries(byVendor).map(([vendorId, group])=>({
+    order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
+    items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
+    payment_method: method, customer_area: area, rider_tid: rider.tid,
+    customer_name: custId.name, customer_phone: custId.phone,
+    status: 'new', created_at: new Date().toISOString(),
+  }));
+
+  /* Save FIRST, confirm it actually landed, THEN show success -- never the
+     other way around. A customer should never see "order confirmed" for an
+     order that was never recorded. If the save fails, the basket is kept
+     untouched so nothing is lost and they can just try again. */
+  let saveError = null;
+  try{
+    const { error } = await supabaseClient.from('orders').insert(rows);
+    if(error) throw error;
+  }catch(e){
+    saveError = e.message || String(e);
+    console.log('Order not saved:', saveError);
+  }
+  if(saveError){
+    alert(`Your order could not be placed — ${saveError}. Your basket has been kept — please try again.`);
+    return;
+  }
+
+  closeCart();
   document.getElementById('confirmOrderId').textContent = orderId;
   document.getElementById('confirmSummary').innerHTML = `
     <div class="summary-box" style="text-align:left;">
@@ -1031,7 +978,6 @@ async function finishOrder(method, custId){
       <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal)}</span></div>
     </div>`;
 
-  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
   document.getElementById('confirmRider').innerHTML = `
     <div class="rider-card">
       <div class="avatar" style="background:${avatarColor(rider.name)}; width:44px;height:44px;font-size:0.85rem;">${initials(rider.name)}</div>
@@ -1044,28 +990,6 @@ async function finishOrder(method, custId){
 
   document.getElementById('confirmOverlay').classList.remove('hidden');
   document.getElementById('confirmSheet').classList.remove('hidden');
-
-  /* One checkout can span several stalls (a real mixed market basket), but a
-     vendor should only ever see their own items to fulfil -- not the whole
-     order. So one checkout becomes one 'orders' row per vendor, all sharing
-     this same order_id as the group reference the customer sees. Vendors
-     query their own rows by vendor_id from vendor-dashboard.html. */
-  const area = document.getElementById('areaSelect').value;
-  const byVendor = {};
-  AppState.cart.forEach(c=>{
-    if(!byVendor[c.vendorId]) byVendor[c.vendorId] = {vendorName: c.vendorName, items: []};
-    byVendor[c.vendorId].items.push(c);
-  });
-  try{
-    const rows = Object.entries(byVendor).map(([vendorId, group])=>({
-      order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
-      items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
-      payment_method: method, customer_area: area, rider_tid: rider.tid,
-      customer_name: custId.name, customer_phone: custId.phone,
-      status: 'new', created_at: new Date().toISOString(),
-    }));
-    await supabaseClient.from('orders').insert(rows);
-  }catch(e){ console.log('Order log skipped (Supabase not configured):', e.message); }
 
   AppState.cart = [];
   updateCartUI();
@@ -1093,8 +1017,8 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
   renderPopular(); renderMain();
 });
 
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://alxzmjgepftohwpqibmn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b2h3cHFpYm1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTg1NDQsImV4cCI6MjEwMTU3NDU0NH0.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA';
 let supabaseClient;
 try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
 catch(e){ supabaseClient = { from:()=>({insert:async()=>({}), select:async()=>({data:null,error:'no client'})}) }; }
