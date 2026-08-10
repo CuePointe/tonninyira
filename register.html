@@ -69,7 +69,9 @@
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:var(--green); color:var(--sand); padding:12px 20px; border-radius:12px;
     font-weight:700; font-size:0.88rem; box-shadow:0 8px 20px rgba(0,0,0,0.35); z-index:100;
+    max-width:85vw; text-align:center;
   }
+  #toast.toast-error{ background:var(--red); }
 </style>
 </head>
 <body>
@@ -363,10 +365,11 @@ let vendorCounter = 0, riderCounter = 0;
 
 function maskNid(nid){ return nid.length<=4 ? '••••' : '•'.repeat(nid.length-4) + nid.slice(-4); }
 
-function showToast(msg){
+function showToast(msg, isError){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.remove('hidden');
-  setTimeout(()=>t.classList.add('hidden'), 3500);
+  t.classList.toggle('toast-error', !!isError);
+  setTimeout(()=>t.classList.add('hidden'), isError ? 6000 : 3500);
 }
 
 async function uploadToStorage(file, path){
@@ -428,8 +431,18 @@ async function submitVendorForm(e){
     logo_url: logoUrl, gallery, items, created_at: new Date().toISOString(),
   };
 
-  try{ await supabaseClient.from('vendors').insert(record); }
-  catch(err){ console.log('Vendor row not saved (Supabase not configured yet):', err.message); }
+  let saveError = null;
+  try{
+    const { error } = await supabaseClient.from('vendors').insert(record);
+    if(error) throw error;
+  }catch(err){
+    saveError = err.message || String(err);
+    console.log('Vendor row not saved:', saveError);
+  }
+  if(saveError){
+    showToast(`Couldn't register your stall — ${saveError}`, true);
+    return;
+  }
 
   document.getElementById('vendorSessionList').querySelector('.helper')?.remove();
   document.getElementById('vendorSessionList').insertAdjacentHTML('afterbegin', `
@@ -474,8 +487,18 @@ async function submitRiderForm(e){
     created_at: new Date().toISOString(),
   };
 
-  try{ await supabaseClient.from('riders').insert(record); }
-  catch(err){ console.log('Rider row not saved (Supabase not configured yet):', err.message); }
+  let saveError = null;
+  try{
+    const { error } = await supabaseClient.from('riders').insert(record);
+    if(error) throw error;
+  }catch(err){
+    saveError = err.message || String(err);
+    console.log('Rider row not saved:', saveError);
+  }
+  if(saveError){
+    showToast(`Couldn't register as a rider — ${saveError}`, true);
+    return;
+  }
 
   document.getElementById('riderSessionList').querySelector('.helper')?.remove();
   document.getElementById('riderSessionList').insertAdjacentHTML('afterbegin', `
@@ -490,8 +513,8 @@ async function submitRiderForm(e){
   showToast(`Rider registered — ${tid}`);
 }
 
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://alxzmjgepftohwpqibmn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b2h3cHFpYm1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTg1NDQsImV4cCI6MjEwMTU3NDU0NH0.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA';
 let supabaseClient;
 try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
 catch(e){ supabaseClient = { from:()=>({insert:async()=>({})}), storage:{from:()=>({upload:async()=>({error:'no client'}), getPublicUrl:()=>({data:{publicUrl:''}})})} }; }

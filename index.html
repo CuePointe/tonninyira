@@ -932,8 +932,45 @@ async function finishOrder(method, custId){
   }
   const orderId = 'TN-' + Math.random().toString(36).substr(2,7).toUpperCase();
   const subtotal = cartSubtotal();
-  closeCart();
+  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
+  const area = document.getElementById('areaSelect').value;
 
+  /* One checkout can span several stalls (a real mixed market basket), but a
+     vendor should only ever see their own items to fulfil -- not the whole
+     order. So one checkout becomes one 'orders' row per vendor, all sharing
+     this same order_id as the group reference the customer sees. Vendors
+     query their own rows by vendor_id from vendor-dashboard.html. */
+  const byVendor = {};
+  AppState.cart.forEach(c=>{
+    if(!byVendor[c.vendorId]) byVendor[c.vendorId] = {vendorName: c.vendorName, items: []};
+    byVendor[c.vendorId].items.push(c);
+  });
+  const rows = Object.entries(byVendor).map(([vendorId, group])=>({
+    order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
+    items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
+    payment_method: method, customer_area: area, rider_tid: rider.tid,
+    customer_name: custId.name, customer_phone: custId.phone,
+    status: 'new', created_at: new Date().toISOString(),
+  }));
+
+  /* Save FIRST, confirm it actually landed, THEN show success -- never the
+     other way around. A customer should never see "order confirmed" for an
+     order that was never recorded. If the save fails, the basket is kept
+     untouched so nothing is lost and they can just try again. */
+  let saveError = null;
+  try{
+    const { error } = await supabaseClient.from('orders').insert(rows);
+    if(error) throw error;
+  }catch(e){
+    saveError = e.message || String(e);
+    console.log('Order not saved:', saveError);
+  }
+  if(saveError){
+    alert(`Your order could not be placed — ${saveError}. Your basket has been kept — please try again.`);
+    return;
+  }
+
+  closeCart();
   document.getElementById('confirmOrderId').textContent = orderId;
   document.getElementById('confirmSummary').innerHTML = `
     <div class="summary-box" style="text-align:left;">
@@ -941,7 +978,6 @@ async function finishOrder(method, custId){
       <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal)}</span></div>
     </div>`;
 
-  const rider = SAMPLE_RIDERS[Math.floor(Math.random()*SAMPLE_RIDERS.length)];
   document.getElementById('confirmRider').innerHTML = `
     <div class="rider-card">
       <div class="avatar" style="background:${avatarColor(rider.name)}; width:44px;height:44px;font-size:0.85rem;">${initials(rider.name)}</div>
@@ -954,28 +990,6 @@ async function finishOrder(method, custId){
 
   document.getElementById('confirmOverlay').classList.remove('hidden');
   document.getElementById('confirmSheet').classList.remove('hidden');
-
-  /* One checkout can span several stalls (a real mixed market basket), but a
-     vendor should only ever see their own items to fulfil -- not the whole
-     order. So one checkout becomes one 'orders' row per vendor, all sharing
-     this same order_id as the group reference the customer sees. Vendors
-     query their own rows by vendor_id from vendor-dashboard.html. */
-  const area = document.getElementById('areaSelect').value;
-  const byVendor = {};
-  AppState.cart.forEach(c=>{
-    if(!byVendor[c.vendorId]) byVendor[c.vendorId] = {vendorName: c.vendorName, items: []};
-    byVendor[c.vendorId].items.push(c);
-  });
-  try{
-    const rows = Object.entries(byVendor).map(([vendorId, group])=>({
-      order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
-      items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
-      payment_method: method, customer_area: area, rider_tid: rider.tid,
-      customer_name: custId.name, customer_phone: custId.phone,
-      status: 'new', created_at: new Date().toISOString(),
-    }));
-    await supabaseClient.from('orders').insert(rows);
-  }catch(e){ console.log('Order log skipped (Supabase not configured):', e.message); }
 
   AppState.cart = [];
   updateCartUI();
@@ -1003,8 +1017,8 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
   renderPopular(); renderMain();
 });
 
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://alxzmjgepftohwpqibmn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b2h3cHFpYm1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTg1NDQsImV4cCI6MjEwMTU3NDU0NH0.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA';
 let supabaseClient;
 try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
 catch(e){ supabaseClient = { from:()=>({insert:async()=>({}), select:async()=>({data:null,error:'no client'})}) }; }
