@@ -136,8 +136,16 @@
   .stall-list{padding:16px;}
   .stall-card{
     background:var(--card); border-radius:18px; margin-bottom:18px; overflow:hidden;
-    border:1px solid rgba(243,232,216,0.06);
+    border:1px solid rgba(243,232,216,0.06); position:relative;
   }
+  .fav-btn{
+    position:absolute; top:14px; right:14px; z-index:5; width:34px; height:34px; border-radius:50%;
+    background:rgba(28,20,16,0.55); border:none; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--sand);
+  }
+  .fav-btn .icon{width:18px; height:18px;}
+  .fav-btn.active{color:var(--red);}
+  .fav-btn.active .icon{fill:var(--red);}
   .stall-roof{
     height:10px;
     background:repeating-linear-gradient(45deg, var(--red) 0 10px, var(--gold) 10px 20px);
@@ -349,8 +357,8 @@
     <div class="delivery-note" style="text-align:left; margin-top:16px;">
       <span id="confirmMotoIcon"></span>
       <div>
-        <p class="dn-title">Your rider will call to confirm the delivery fee</p>
-        <p class="dn-body">Tonninyira doesn't set this — it depends on distance from the vendor to your door.</p>
+        <p class="dn-title">Delivery fee: UGX ${fmt(DELIVERY_FEE)}, already paid</p>
+        <p class="dn-body">Set by Tonninyira and included in your total — nothing more to pay your rider on arrival.</p>
       </div>
     </div>
   </div>
@@ -373,6 +381,7 @@
 
 <script>
 const ICONS = {
+  heart: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>`,
   search: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
   cart: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`,
   pin: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
@@ -489,6 +498,13 @@ const CATALOG = {
 
 const SAMPLE_RIDERS = [];
 
+/* Delivery fee is set by Tonninyira, not negotiated with the rider -- one
+   flat rate for now. Edit this single number to change it platform-wide.
+   A per-area or per-distance rate table is a natural next step once real
+   area-by-area pricing is decided; this is the simplest correct version
+   until then. */
+const DELIVERY_FEE = 3000;
+
 const AppState = { category:"eats", subcategory:"breakfast", view:"shop", searchTerm:"", cart:[] };
 const AVATAR_COLORS = ['#E23F25','#F5B400','#4C9A5B','#C98F00','#B92E18'];
 
@@ -595,11 +611,14 @@ function renderMain(){
   document.getElementById('popularWrap').classList.toggle('hidden', !tabsShown);
 
   if(AppState.view==='orders'){ renderMyOrders(); return; }
+  if(AppState.view==='favorites'){ renderFavorites(); return; }
   if(AppState.view==='profile'){
     const custId = getCustomerIdentity();
     const idBlock = custId
       ? `<div class="placeholder">${ICONS.user}<h3>${custId.name}</h3><p>${custId.phone}</p></div>
          <div style="padding:0 16px 10px; max-width:420px; margin:0 auto;">
+           <button class="btn-primary" style="width:100%;" onclick="goView('orders')">View My Orders</button>
+           <button class="btn-secondary" style="width:100%;" onclick="AppState.view='favorites'; renderMain(); window.scrollTo(0,0);">My Favorite Stalls</button>
            <button class="btn-secondary" style="width:100%;" onclick="document.getElementById('identityOverlay').classList.remove('hidden'); document.getElementById('identitySheet').classList.remove('hidden');">Not You? Switch Account</button>
          </div>`
       : `<div class="placeholder">${ICONS.user}<h3>Not signed in</h3><p>Sign in to find your orders and rate your stalls and riders.</p></div>
@@ -609,6 +628,7 @@ function renderMain(){
     el.innerHTML = idBlock + `
       <div style="padding:0 16px 24px; max-width:420px; margin:0 auto;">
         <a href="vendor-dashboard.html" class="btn-secondary" style="display:block; text-align:center; text-decoration:none; border-color:var(--gold); color:var(--gold);">Already Registered? Manage My Stall</a>
+        <a href="rider-dashboard.html" class="btn-secondary" style="display:block; text-align:center; text-decoration:none; border-color:var(--gold); color:var(--gold);">Already a Rider? View My Deliveries</a>
         <a href="register.html?as=vendor" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Become a Vendor — Register Your Stall</a>
         <a href="register.html?as=rider" class="btn-secondary" style="display:block; text-align:center; text-decoration:none;">Become a Rider — Register to Deliver</a>
       </div>`;
@@ -752,6 +772,32 @@ async function submitReview(targetType, targetId, orderId, btnEl){
   }
 }
 
+/* Favorite stalls -- the version of a "wishlist" that actually fits this
+   app: people are loyal to a stall (a mama, a specific vendor) far more
+   than to one SKU they might reorder. Local to the device, same pattern as
+   customer identity -- no account system needed for this to work. */
+function getFavorites(){
+  try{ return JSON.parse(localStorage.getItem('tonninyira_favorites')||'[]'); }catch(e){ return []; }
+}
+function isFavorite(id){ return getFavorites().includes(id); }
+function toggleFavorite(id){
+  let favs = getFavorites();
+  favs = favs.includes(id) ? favs.filter(f=>f!==id) : [...favs, id];
+  localStorage.setItem('tonninyira_favorites', JSON.stringify(favs));
+  const btn = document.getElementById('fav-'+id);
+  if(btn) btn.classList.toggle('active', favs.includes(id));
+}
+function renderFavorites(){
+  const el = document.getElementById('mainArea');
+  const favIds = getFavorites();
+  const allVendors = [];
+  Object.entries(CATALOG).forEach(([catKey, cat])=>Object.entries(cat.subs).forEach(([subKey, sub])=>
+    sub.vendors.forEach(v=>{ if(favIds.includes(v.id)) allVendors.push({...v, catKey, subKey}); })));
+  el.innerHTML = allVendors.length
+    ? `<div class="stall-list">${allVendors.map(v=>vendorCardHTML(v)).join('')}</div>`
+    : `<div class="placeholder">${ICONS.heart}<h3>No favorites yet</h3><p>Tap the heart on any stall to save it here.</p></div>`;
+}
+
 function vendorCardHTML(v){
   const stallNo = stallNumberFor(v.id);
   const showUNBS = v.catKey==='eats' || v.subKey==='groceries' || v.subKey==='rawfoods';
@@ -772,6 +818,7 @@ function vendorCardHTML(v){
   return `
     <div class="stall-card" id="vendor-${v.id}">
       <div class="stall-roof"></div>
+      <button class="fav-btn ${isFavorite(v.id)?'active':''}" id="fav-${v.id}" onclick="toggleFavorite('${v.id}')" aria-label="Save stall">${ICONS.heart}</button>
       <div class="stall-header">
         ${avatarOrLogo}
         <div>
@@ -835,8 +882,8 @@ function updateCartUI(){
     <div class="delivery-note">
       ${ICONS.moto}
       <div>
-        <p class="dn-title">Delivery fee: set by your Tonninyira rider</p>
-        <p class="dn-body">Our riders are ID-verified and carry a Tonninyira Rider ID. You'll get the exact fee before pickup — usually UGX 1,000–4,000 depending on distance.</p>
+        <p class="dn-title">Delivery fee: UGX ${fmt(DELIVERY_FEE)}</p>
+        <p class="dn-body">Set by Tonninyira, included in what you pay now. Our riders are ID-verified and carry a Tonninyira Rider ID.</p>
       </div>
     </div>
     ${AppState.cart.map(c=>`
@@ -856,8 +903,8 @@ function updateCartUI(){
       </div>`).join('')}
     <div class="summary-box">
       <div class="summary-row"><span>Subtotal (to vendors)</span><span>UGX ${fmt(cartSubtotal())}</span></div>
-      <div class="summary-row"><span>Delivery</span><span>Set by rider</span></div>
-      <div class="summary-row total"><span>You pay vendors</span><span>UGX ${fmt(cartSubtotal())}</span></div>
+      <div class="summary-row"><span>Delivery</span><span>UGX ${fmt(DELIVERY_FEE)}</span></div>
+      <div class="summary-row total"><span>Total</span><span>UGX ${fmt(cartSubtotal()+DELIVERY_FEE)}</span></div>
     </div>
     <button class="btn-primary" onclick="completeOrder('Cash on Delivery')">Place Order — Pay Cash on Delivery</button>
     <button class="btn-link-alt" onclick="toggleAltPay()">Prefer Mobile Money instead?</button>
@@ -948,7 +995,7 @@ async function finishOrder(method, custId){
   const rows = Object.entries(byVendor).map(([vendorId, group])=>({
     order_id: orderId, vendor_id: vendorId, vendor_name: group.vendorName,
     items: group.items, item_subtotal: group.items.reduce((s,i)=>s+i.price*i.qty,0),
-    payment_method: method, customer_area: area, rider_tid: rider.tid,
+    delivery_fee: DELIVERY_FEE, payment_method: method, customer_area: area, rider_tid: rider.tid,
     customer_name: custId.name, customer_phone: custId.phone,
     status: 'new', created_at: new Date().toISOString(),
   }));
@@ -975,7 +1022,8 @@ async function finishOrder(method, custId){
   document.getElementById('confirmSummary').innerHTML = `
     <div class="summary-box" style="text-align:left;">
       ${AppState.cart.map(c=>`<div class="summary-row"><span>${c.name} ×${c.qty}</span><span>UGX ${fmt(c.price*c.qty)}</span></div>`).join('')}
-      <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal)}</span></div>
+      <div class="summary-row"><span>Delivery</span><span>UGX ${fmt(DELIVERY_FEE)}</span></div>
+      <div class="summary-row total"><span>Paid via ${method}</span><span>UGX ${fmt(subtotal+DELIVERY_FEE)}</span></div>
     </div>`;
 
   document.getElementById('confirmRider').innerHTML = `

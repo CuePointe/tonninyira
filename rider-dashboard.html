@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonninyira — Stall Dashboard</title>
+<title>Tonninyira — Rider Dashboard</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
@@ -53,26 +53,24 @@
   .logout-link{background:none; border:none; color:var(--muted); font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:underline; padding:0;}
 
   .order-card{background:var(--card2); border-radius:14px; padding:14px; margin-top:12px; border-left:4px solid var(--muted);}
-  .order-card.status-new{border-left-color:var(--red);}
-  .order-card.status-accepted, .order-card.status-preparing{border-left-color:var(--gold);}
-  .order-card.status-ready{border-left-color:var(--green);}
-  .order-card.status-completed, .order-card.status-declined{opacity:0.55;}
+  .order-card.stage-preparing{border-left-color:var(--gold);}
+  .order-card.stage-ready{border-left-color:var(--green);}
+  .order-card.stage-out{border-left-color:var(--gold);}
+  .order-card.stage-done{opacity:0.55;}
   .order-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
   .order-id{font-weight:800; font-family:'Alfa Slab One'; font-size:0.92rem;}
   .order-time{font-size:0.72rem; color:var(--muted); margin-top:2px;}
   .status-pill{display:inline-block; padding:4px 10px; border-radius:20px; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap;}
-  .status-pill.status-new{background:var(--red); color:var(--sand);}
-  .status-pill.status-accepted, .status-pill.status-preparing{background:var(--gold); color:var(--ink);}
-  .status-pill.status-ready{background:var(--green); color:var(--sand);}
-  .status-pill.status-completed, .status-pill.status-declined{background:var(--card); color:var(--muted);}
-  .order-item-line{display:flex; justify-content:space-between; font-size:0.86rem; padding:5px 0; border-bottom:1px dashed rgba(243,232,216,0.08);}
+  .status-pill.stage-preparing{background:var(--gold); color:var(--ink);}
+  .status-pill.stage-ready{background:var(--green); color:var(--sand);}
+  .status-pill.stage-out{background:var(--gold); color:var(--ink);}
+  .status-pill.stage-done{background:var(--card); color:var(--muted);}
+  .pickup-line{display:flex; justify-content:space-between; font-size:0.86rem; padding:6px 0; border-bottom:1px dashed rgba(243,232,216,0.08);}
   .order-meta{font-size:0.78rem; color:var(--muted); margin-top:8px;}
-  .order-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
-  .action-btn{flex:1; min-width:100px; padding:11px; border-radius:10px; border:none; font-weight:800; font-size:0.8rem; cursor:pointer;}
-  .action-accept{background:var(--gold); color:var(--ink);}
-  .action-ready{background:var(--green); color:var(--sand);}
-  .action-done{background:var(--card); color:var(--sand); border:1px solid rgba(243,232,216,0.15);}
-  .action-decline{background:none; color:var(--red); border:1px solid var(--red);}
+  .order-actions{margin-top:12px;}
+  .action-btn{width:100%; padding:12px; border-radius:10px; border:none; font-weight:800; font-size:0.85rem; cursor:pointer;}
+  .action-pickup{background:var(--green); color:var(--sand);}
+  .action-deliver{background:var(--gold); color:var(--ink);}
 
   .placeholder{text-align:center; padding:50px 20px; color:var(--muted);}
   .placeholder h3{color:var(--sand); text-transform:none; letter-spacing:0; margin-bottom:6px;}
@@ -86,7 +84,7 @@
       <div class="brand-badge" id="brandBadge"></div>
       <div class="brand-text">
         <div class="brand-name display">Tonninyira</div>
-        <div class="brand-tag">Stall Dashboard</div>
+        <div class="brand-tag">Rider Dashboard</div>
       </div>
     </div>
     <a class="back-link" href="index.html">← Back to app</a>
@@ -96,7 +94,7 @@
 <div class="wrap">
 
   <div id="loginView">
-    <h3>Log In To Your Stall</h3>
+    <h3>Log In To Deliver</h3>
     <div class="card">
       <label>Phone Number <span class="opt">(the one you registered with)</span></label>
       <input type="tel" id="loginPhone" placeholder="e.g. 0772 123 456">
@@ -104,18 +102,18 @@
       <input type="tel" id="loginPin" maxlength="4" inputmode="numeric" placeholder="••••">
       <button class="btn-primary" onclick="attemptLogin()">Log In</button>
       <div id="loginError" class="error-text hidden"></div>
-      <p class="helper">Not registered yet? <a href="register.html?as=vendor" style="color:var(--gold);">Set up your stall here</a> — you'll choose your PIN during sign-up.</p>
+      <p class="helper">Not registered yet? <a href="register.html?as=rider" style="color:var(--gold);">Sign up to deliver here</a> — you'll choose your PIN during sign-up.</p>
     </div>
   </div>
 
   <div id="dashView" class="hidden">
     <div class="top-bar">
-      <div class="who" id="vendorWho"></div>
+      <div class="who" id="riderWho"></div>
       <button class="logout-link" onclick="logOut()">Log Out</button>
     </div>
-    <p class="helper">Refreshes automatically every 20 seconds.</p>
-    <button class="btn-secondary" onclick="loadOrders()">↻ Refresh Now</button>
-    <div id="ordersList"></div>
+    <p class="helper">Refreshes automatically every 20 seconds. Only stalls marked "Ready for Pickup" can be picked up.</p>
+    <button class="btn-secondary" onclick="loadDeliveries()">↻ Refresh Now</button>
+    <div id="deliveriesList"></div>
   </div>
 
 </div>
@@ -128,15 +126,6 @@ try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_K
 catch(e){ supabaseClient = { from:()=>({select:()=>({eq:()=>({order:async()=>({data:null,error:'no client'})})})}), }; }
 
 function paintBrandSVG(){ document.getElementById('brandBadge').style.display = 'none'; }
-/* Enlarges "Tonninyira" until its rendered width matches the tagline's own
-   natural width -- the tagline is never touched. (Previous version did this
-   backwards: it letter-spaced the tagline to match the wordmark instead.)
-   Clamped to a sane range so a font-load hiccup can't blow the size out. */
-/* Enlarges "Tonninyira" until its chip's OUTER width (glyphs + its own fixed
-   padding) matches the tagline chip's outer width -- the tagline is never
-   touched. Padding is fixed px and doesn't scale with font-size, so this
-   solves for glyph-width, not total width, before computing the ratio.
-   Clamped to a sane range so a font-load hiccup can't blow the size out. */
 function matchWordmarkWidth(){
   const word = document.querySelector('.brand-name');
   const tag = document.querySelector('.brand-tag');
@@ -183,12 +172,6 @@ function tryLoadLogo(paths, i){
 }
 tryLoadLogo(['assets/logo.png','logo.png','Assets/logo.png','images/logo.png','assets/Logo.png']);
 
-/* Same normalize + hash as register.html, so a login only succeeds when both
-   match what was set at sign-up. This checks the hash in the browser rather
-   than on a server -- consistent with how the rest of Tonninyira talks to
-   Supabase right now, but worth upgrading to a real server-side check (a
-   Supabase Edge Function, or full Supabase Auth) before a public launch --
-   see the note below the SQL in chat. */
 function normalizePhone(p){ return (p||'').replace(/[\s-]/g,''); }
 async function hashPin(phone, pin){
   const data = new TextEncoder().encode(normalizePhone(phone) + ':' + pin.trim());
@@ -196,7 +179,7 @@ async function hashPin(phone, pin){
   return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-let currentVendor = null; // {tonninyira_id, business_name}
+let currentRider = null; // {tonninyira_id, full_name}
 let refreshTimer = null;
 
 async function attemptLogin(){
@@ -210,18 +193,18 @@ async function attemptLogin(){
     return;
   }
   try{
-    const { data, error } = await supabaseClient.from('vendors').select('tonninyira_id,business_name,phone,pin_hash');
+    const { data, error } = await supabaseClient.from('riders').select('tonninyira_id,full_name,phone,pin_hash');
     if(error) throw error;
     const wantHash = await hashPin(phoneRaw, pin);
     const wantPhone = normalizePhone(phoneRaw);
-    const match = (data||[]).find(v => normalizePhone(v.phone) === wantPhone && v.pin_hash === wantHash);
+    const match = (data||[]).find(r => normalizePhone(r.phone) === wantPhone && r.pin_hash === wantHash);
     if(!match){
       errEl.textContent = "Phone number or PIN doesn't match our records. Double-check and try again.";
       errEl.classList.remove('hidden');
       return;
     }
-    currentVendor = { tonninyira_id: match.tonninyira_id, business_name: match.business_name };
-    localStorage.setItem('tonninyira_vendor_session', JSON.stringify(currentVendor));
+    currentRider = { tonninyira_id: match.tonninyira_id, full_name: match.full_name };
+    localStorage.setItem('tonninyira_rider_session', JSON.stringify(currentRider));
     showDashboard();
   }catch(e){
     errEl.textContent = 'Could not reach the server — check your connection and try again.';
@@ -233,14 +216,14 @@ async function attemptLogin(){
 function showDashboard(){
   document.getElementById('loginView').classList.add('hidden');
   document.getElementById('dashView').classList.remove('hidden');
-  document.getElementById('vendorWho').textContent = 'Welcome back, ' + (currentVendor.business_name||'');
-  loadOrders();
+  document.getElementById('riderWho').textContent = 'Ride on, ' + (currentRider.full_name||'');
+  loadDeliveries();
   if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadOrders, 20000);
+  refreshTimer = setInterval(loadDeliveries, 20000);
 }
 function logOut(){
-  currentVendor = null;
-  localStorage.removeItem('tonninyira_vendor_session');
+  currentRider = null;
+  localStorage.removeItem('tonninyira_rider_session');
   if(refreshTimer) clearInterval(refreshTimer);
   document.getElementById('dashView').classList.add('hidden');
   document.getElementById('loginView').classList.remove('hidden');
@@ -248,7 +231,6 @@ function logOut(){
   document.getElementById('loginPin').value = '';
 }
 
-const STATUS_LABEL = { new:'New', accepted:'Accepted', preparing:'Preparing', ready:'Ready for Pickup', out_for_delivery:'Out for Delivery', completed:'Completed', declined:'Declined' };
 function timeAgo(iso){
   const mins = Math.round((Date.now() - new Date(iso).getTime())/60000);
   if(mins < 1) return 'just now';
@@ -258,64 +240,79 @@ function timeAgo(iso){
   return new Date(iso).toLocaleDateString();
 }
 
-async function loadOrders(){
-  if(!currentVendor) return;
+/* A single delivery run can mean picking up from more than one stall (a
+   customer's basket can span several vendors), and all those rows share
+   the same order_id and rider_tid -- so this groups by order_id, same as
+   the customer's own order history does, rather than showing one card per
+   vendor line. */
+async function loadDeliveries(){
+  if(!currentRider) return;
   try{
     const { data, error } = await supabaseClient.from('orders').select('*')
-      .eq('vendor_id', currentVendor.tonninyira_id).order('created_at', {ascending:false});
+      .eq('rider_tid', currentRider.tonninyira_id).order('created_at', {ascending:false});
     if(error) throw error;
-    renderOrders(data||[]);
+    renderDeliveries(data||[]);
   }catch(e){
-    document.getElementById('ordersList').innerHTML = `<div class="placeholder"><p>Couldn't load orders (${e.message||e}).</p></div>`;
+    document.getElementById('deliveriesList').innerHTML = `<div class="placeholder"><p>Couldn't load deliveries (${e.message||e}).</p></div>`;
   }
 }
 
-function renderOrders(orders){
-  const el = document.getElementById('ordersList');
-  if(!orders.length){
-    el.innerHTML = `<div class="placeholder">${''}<h3>No orders yet</h3><p>New orders from customers will show up here automatically.</p></div>`;
+function stageFor(rows){
+  if(rows.every(r=>r.status==='completed')) return 'done';
+  if(rows.some(r=>r.status==='out_for_delivery')) return 'out';
+  if(rows.every(r=>['ready','out_for_delivery'].includes(r.status))) return 'ready';
+  return 'preparing';
+}
+const STAGE_LABEL = { preparing:'Stalls Still Preparing', ready:'Ready for Pickup', out:'Out for Delivery', done:'Delivered' };
+
+function renderDeliveries(rows){
+  const el = document.getElementById('deliveriesList');
+  if(!rows.length){
+    el.innerHTML = `<div class="placeholder"><h3>No deliveries yet</h3><p>New deliveries assigned to you will show up here automatically.</p></div>`;
     return;
   }
-  el.innerHTML = orders.map(o=>{
-    const items = o.items||[];
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.order_id] = groups[r.order_id]||[]).push(r); });
+
+  el.innerHTML = Object.entries(groups).map(([orderId, group])=>{
+    const first = group[0];
+    const stage = stageFor(group);
+    const pickups = group.map(g=>`
+      <div class="pickup-line"><span>${g.vendor_name}</span>
+        <span class="status-pill stage-${g.status==='ready'||g.status==='out_for_delivery'||g.status==='completed' ? 'ready':'preparing'}">${g.status==='ready'?'Ready':g.status==='out_for_delivery'?'Picked Up':g.status==='completed'?'Delivered':'Preparing'}</span>
+      </div>`).join('');
+    let action = '';
+    if(stage==='ready') action = `<button class="action-btn action-pickup" onclick="advanceGroup('${orderId}','out_for_delivery')">Mark Picked Up From All Stalls</button>`;
+    else if(stage==='out') action = `<button class="action-btn action-deliver" onclick="advanceGroup('${orderId}','completed')">Mark Delivered</button>`;
+    else if(stage==='preparing') action = `<p class="helper">Waiting on stalls to finish preparing before pickup.</p>`;
     return `
-    <div class="order-card status-${o.status}">
+    <div class="order-card stage-${stage}">
       <div class="order-top">
         <div>
-          <div class="order-id">${o.order_id}</div>
-          <div class="order-time">${timeAgo(o.created_at)} · ${o.customer_area||'area not given'}</div>
+          <div class="order-id">${orderId}</div>
+          <div class="order-time">${timeAgo(first.created_at)} · deliver to ${first.customer_area||'area not given'}</div>
         </div>
-        <span class="status-pill status-${o.status}">${STATUS_LABEL[o.status]||o.status}</span>
+        <span class="status-pill stage-${stage}">${STAGE_LABEL[stage]}</span>
       </div>
-      ${items.map(it=>`<div class="order-item-line"><span>${it.name} ×${it.qty}</span><span>UGX ${Number(it.price*it.qty).toLocaleString()}</span></div>`).join('')}
-      <div class="order-meta">Payment: ${o.payment_method} · Rider: ${o.rider_tid||'—'}</div>
-      <div class="order-actions">${actionsFor(o.status, o.id)}</div>
+      ${pickups}
+      <div class="order-meta">Customer: ${first.customer_name||'—'} · ${first.customer_phone||''}</div>
+      <div class="order-actions">${action}</div>
     </div>`;
   }).join('');
 }
 
-function actionsFor(status, id){
-  if(status==='new') return `
-    <button class="action-btn action-accept" onclick="updateStatus(${id},'accepted')">Accept</button>
-    <button class="action-btn action-decline" onclick="updateStatus(${id},'declined')">Decline</button>`;
-  if(status==='accepted') return `<button class="action-btn action-accept" onclick="updateStatus(${id},'preparing')">Start Preparing</button>`;
-  if(status==='preparing') return `<button class="action-btn action-ready" onclick="updateStatus(${id},'ready')">Mark Ready for Pickup</button>`;
-  if(status==='ready') return `<span class="helper" style="font-style:italic;">Waiting for your rider to pick this up</span>`;
-  if(status==='out_for_delivery') return `<span class="helper" style="font-style:italic;">Out for delivery</span>`;
-  return '';
-}
-
-async function updateStatus(id, status){
+async function advanceGroup(orderId, status){
   try{
-    await supabaseClient.from('orders').update({status, updated_at:new Date().toISOString()}).eq('id', id);
-    loadOrders();
-  }catch(e){ console.log('Status update failed:', e.message||e); }
+    await supabaseClient.from('orders').update({status, updated_at:new Date().toISOString()})
+      .eq('order_id', orderId).eq('rider_tid', currentRider.tonninyira_id);
+    loadDeliveries();
+  }catch(e){ console.log('Delivery status update failed:', e.message||e); }
 }
 
 (function restoreSession(){
   try{
-    const saved = JSON.parse(localStorage.getItem('tonninyira_vendor_session')||'null');
-    if(saved && saved.tonninyira_id){ currentVendor = saved; showDashboard(); }
+    const saved = JSON.parse(localStorage.getItem('tonninyira_rider_session')||'null');
+    if(saved && saved.tonninyira_id){ currentRider = saved; showDashboard(); }
   }catch(e){}
 })();
 </script>

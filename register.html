@@ -163,6 +163,8 @@
       <input type="text" name="riderName" required>
       <label>Phone Number</label>
       <input type="tel" name="riderPhone" required>
+      <label>Set a 4-Digit PIN <span class="opt">(this + your phone number logs you into your rider dashboard later)</span></label>
+      <input type="tel" name="riderPin" id="riderPin" required pattern="\d{4}" maxlength="4" inputmode="numeric" placeholder="e.g. 4821">
       <label>National ID Number (NID)</label>
       <input type="text" name="nid" required placeholder="Used for verification only — never shown to customers">
       <div class="helper">Only your name, photo and Tonninyira ID are ever shown to customers. Your NID stays internal, for accountability if something goes wrong.</div>
@@ -373,13 +375,17 @@ function showToast(msg, isError){
 }
 
 async function uploadToStorage(file, path){
-  try{
-    const {error} = await supabaseClient.storage.from('tonninyira-media').upload(path, file, {upsert:true});
-    if(error) throw error;
-    return supabaseClient.storage.from('tonninyira-media').getPublicUrl(path).data.publicUrl;
-  }catch(e){
-    console.log('Storage upload skipped (bucket not configured yet):', e.message||e);
-    return URL.createObjectURL(file); // local-only fallback so the preview still works this session
+  const {error} = await supabaseClient.storage.from('tonninyira-media').upload(path, file, {upsert:true});
+  if(error) throw error;
+  return supabaseClient.storage.from('tonninyira-media').getPublicUrl(path).data.publicUrl;
+}
+let uploadFailures = [];
+async function tryUpload(file, path, label){
+  try{ return await uploadToStorage(file, path); }
+  catch(e){
+    uploadFailures.push(label);
+    console.log(`Upload failed for ${label}:`, e.message||e);
+    return null;
   }
 }
 
@@ -410,16 +416,17 @@ async function submitVendorForm(e){
     });
   });
 
+  uploadFailures = [];
   let logoUrl = null;
   const logoFile = f.logoFile.files[0];
-  if(logoFile) logoUrl = await uploadToStorage(logoFile, `vendors/${tid}/logo-${logoFile.name}`);
+  if(logoFile) logoUrl = await tryUpload(logoFile, `vendors/${tid}/logo-${logoFile.name}`, 'Logo');
 
   const gallery = [];
   for(let i=1;i<=4;i++){
     const file = document.getElementById('galFile'+i).files[0];
     if(!file) continue;
-    const url = await uploadToStorage(file, `vendors/${tid}/gallery-${i}-${file.name}`);
-    gallery.push({url, caption: document.getElementById('galCap'+i).value.trim(), type: file.type.startsWith('video/')?'video':'image'});
+    const url = await tryUpload(file, `vendors/${tid}/gallery-${i}-${file.name}`, `Photo ${i}`);
+    if(url) gallery.push({url, caption: document.getElementById('galCap'+i).value.trim(), type: file.type.startsWith('video/')?'video':'image'});
   }
 
   const pinHash = await hashPin(f.phone.value, f.vendorPin.value);
@@ -466,7 +473,9 @@ async function submitVendorForm(e){
   itemRowCount = 6;
   document.getElementById('vendorRegDate').value = todayStr;
   updateSubcatOptions();
-  showToast(`Stall registered — ${tid}`);
+  showToast(uploadFailures.length
+    ? `Stall registered — ${tid}, but these images didn't upload: ${uploadFailures.join(', ')}. Edit your stall to re-add them.`
+    : `Stall registered — ${tid}`, uploadFailures.length>0);
 }
 
 async function submitRiderForm(e){
@@ -476,15 +485,17 @@ async function submitRiderForm(e){
   const tid = 'TN-RD-' + String(riderCounter).padStart(5,'0');
   const nid = f.nid.value.trim();
 
+  uploadFailures = [];
   let photoUrl = null;
   const photoFile = f.riderPhoto.files[0];
-  if(photoFile) photoUrl = await uploadToStorage(photoFile, `riders/${tid}/${photoFile.name}`);
+  if(photoFile) photoUrl = await tryUpload(photoFile, `riders/${tid}/${photoFile.name}`, 'Profile Photo');
 
+  const pinHash = await hashPin(f.riderPhone.value, f.riderPin.value);
   const record = {
     tonninyira_id: tid, full_name: f.riderName.value.trim(), phone: f.riderPhone.value.trim(),
     national_id: nid, photo_url: photoUrl, registration_date: f.regDate.value,
     vehicle_type: f.vehicleType.value.trim(), plate_number: f.plate.value.trim(),
-    created_at: new Date().toISOString(),
+    pin_hash: pinHash, created_at: new Date().toISOString(),
   };
 
   let saveError = null;
@@ -510,7 +521,9 @@ async function submitRiderForm(e){
   f.reset();
   document.getElementById('riderPhotoPreview').innerHTML = 'Photo';
   document.getElementById('riderRegDate').value = todayStr;
-  showToast(`Rider registered — ${tid}`);
+  showToast(uploadFailures.length
+    ? `Rider registered — ${tid}, but your photo didn't upload. Edit your profile to re-add it.`
+    : `Rider registered — ${tid}`, uploadFailures.length>0);
 }
 
 const SUPABASE_URL = 'https://alxzmjgepftohwpqibmn.supabase.co';
