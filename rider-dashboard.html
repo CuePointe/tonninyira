@@ -285,6 +285,9 @@ function renderDeliveries(rows){
     if(stage==='ready') action = `<button class="action-btn action-pickup" onclick="advanceGroup('${orderId}','out_for_delivery')">Mark Picked Up From All Stalls</button>`;
     else if(stage==='out') action = `<button class="action-btn action-deliver" onclick="advanceGroup('${orderId}','completed')">Mark Delivered</button>`;
     else if(stage==='preparing') action = `<p class="helper">Waiting on stalls to finish preparing before pickup.</p>`;
+    const mapsLink = (first.customer_lat!=null && first.customer_lng!=null)
+      ? `<a href="https://www.google.com/maps/search/?api=1&query=${first.customer_lat},${first.customer_lng}" target="_blank" rel="noopener" class="action-btn" style="display:block; text-align:center; text-decoration:none; background:var(--card); color:var(--gold); border:1px solid var(--gold); margin-bottom:8px;">📍 Open Customer Location in Maps</a>`
+      : '';
     return `
     <div class="order-card stage-${stage}">
       <div class="order-top">
@@ -296,7 +299,7 @@ function renderDeliveries(rows){
       </div>
       ${pickups}
       <div class="order-meta">Customer: ${first.customer_name||'—'} · ${first.customer_phone||''}</div>
-      <div class="order-actions">${action}</div>
+      <div class="order-actions">${mapsLink}${action}</div>
     </div>`;
   }).join('');
 }

@@ -116,6 +116,8 @@
         <option value="Kisugu"><option value="Kansanga"><option value="Ggaba"><option value="Namwongo">
         <option value="Owino Market"><option value="Bwaise"><option value="Entebbe"><option value="Kasangati"><option value="Jinja">
       </datalist>
+      <button type="button" id="vendorGpsBtn" onclick="captureVendorLocation()" style="background:var(--card2); border:1px solid rgba(243,232,216,0.15); color:var(--gold); border-radius:8px; padding:9px 12px; font-size:0.78rem; font-weight:800; cursor:pointer; margin-top:6px; width:100%;">📍 Set Exact Stall Location (for accurate delivery pricing)</button>
+      <p class="helper">Optional, but it's what lets Tonninyira quote a fair distance-based delivery fee instead of a flat guess.</p>
       <label>Category</label>
       <select id="vCategory" name="category" onchange="updateSubcatOptions()">
         <option value="eats">Eats</option>
@@ -398,6 +400,26 @@ async function hashPin(phone, pin){
   return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+let vendorCoords = null;
+function captureVendorLocation(){
+  const btn = document.getElementById('vendorGpsBtn');
+  if(!navigator.geolocation){ btn.textContent = '📍 Not supported on this device'; return; }
+  btn.textContent = '📍 Locating…';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      vendorCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      btn.textContent = '📍 Stall location captured ✓';
+      btn.style.color = 'var(--green)';
+    },
+    err=>{
+      btn.textContent = '📍 Set Exact Stall Location (for accurate delivery pricing)';
+      showToast("Couldn't get your location — check your phone's permission for this site.", true);
+      console.log('Vendor geolocation error:', err.message||err);
+    },
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+}
+
 async function submitVendorForm(e){
   e.preventDefault();
   const f = e.target;
@@ -435,6 +457,7 @@ async function submitVendorForm(e){
     phone: f.phone.value.trim(), pin_hash: pinHash, registration_date: f.regDate.value,
     location: f.location.value.trim(), category: f.category.value, subcategory: f.subcategory.value,
     kcca_license: f.kcca.value.trim(), ura_tin: f.ura.value.trim(), unbs_cert: f.unbs.value.trim()||null,
+    latitude: vendorCoords ? vendorCoords.lat : null, longitude: vendorCoords ? vendorCoords.lng : null,
     logo_url: logoUrl, gallery, items, created_at: new Date().toISOString(),
   };
 
