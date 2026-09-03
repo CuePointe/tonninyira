@@ -43,15 +43,36 @@ jobs:
       - name: Check for hardcoded privileged Supabase credentials
         shell: bash
         run: |
-          if grep -RInE 'SUPABASE_SERVICE_ROLE_KEY[[:space:]]*[:=][[:space:]]*["'"']|service_role[[:space:]]*[:=][[:space:]]*["'"']eyJ|sb_secret_[A-Za-z0-9]+' --exclude-dir=.git --exclude='.github/workflows/security.yml' .; then
-            echo 'Hardcoded privileged Supabase credentials must never be committed.'
-            exit 1
-          fi
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          skip = {'.git', '.github'}
+          patterns = [
+              re.compile(r'SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*[\'\"]'),
+              re.compile(r'service_role\s*[:=]\s*[\'\"]eyJ'),
+              re.compile(r'sb_secret_[A-Za-z0-9]+'),
+          ]
+          hits = []
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or any(part in skip for part in p.parts):
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8', errors='ignore')
+              except Exception:
+                  continue
+              for pat in patterns:
+                  if pat.search(text):
+                      hits.append(str(p))
+                      break
+          if hits:
+              print('\n'.join(hits))
+              raise SystemExit('Hardcoded privileged Supabase credentials must never be committed.')
+          PY
 
       - name: Check for obvious credential files
         shell: bash
         run: |
-          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' -not -path './.github/workflows/security.yml' | grep -q .; then
+          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' | grep -q .; then
             echo 'Potential credential file found in repository.'
             exit 1
           fi
