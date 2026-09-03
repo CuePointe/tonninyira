@@ -1,0 +1,51 @@
+name: Apply Tonninyira enhancement layer
+
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-enhancements:
+    if: ${{ !contains(github.event.head_commit.message, '[skip enhancement injector]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout enhancement branch
+        uses: actions/checkout@v4
+        with:
+          ref: tonninyira-enhancements
+          fetch-depth: 0
+
+      - name: Inject enhancement script without changing page structure
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          html = p.read_text(encoding='utf-8')
+          tag = '<script src="enhancements.js"></script>'
+          if tag not in html:
+              marker = '</body>'
+              if marker not in html:
+                  raise SystemExit('Could not find </body> in index.html')
+              html = html.replace(marker, f'{tag}\n{marker}', 1)
+              p.write_text(html, encoding='utf-8')
+              print('Injected enhancements.js')
+          else:
+              print('enhancements.js already injected')
+
+      - name: Commit enhancement injection
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Integrate enhancement layer into original UI [skip enhancement injector]'
+          git push origin HEAD:tonninyira-enhancements
