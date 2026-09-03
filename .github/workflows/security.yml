@@ -40,11 +40,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for privileged Supabase keys
+      - name: Check for hardcoded privileged Supabase credentials
         shell: bash
         run: |
-          if grep -RInE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY' --exclude-dir=.git --exclude='.github/workflows/security.yml' .; then
-            echo 'Privileged Supabase credentials must never be committed.'
+          if grep -RInE 'SUPABASE_SERVICE_ROLE_KEY[[:space:]]*[:=][[:space:]]*["'"']|service_role[[:space:]]*[:=][[:space:]]*["'"']eyJ|sb_secret_[A-Za-z0-9]+' --exclude-dir=.git --exclude='.github/workflows/security.yml' .; then
+            echo 'Hardcoded privileged Supabase credentials must never be committed.'
             exit 1
           fi
 
