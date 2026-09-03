@@ -18,8 +18,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check JavaScript syntax
+      - name: Check customer JavaScript syntax
         run: node --check customer-app.js
+
+      - name: Check staff page JavaScript syntax
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('support.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.S|re.I)
+          if not scripts:
+              raise SystemExit('No inline support script found')
+          Path('/tmp/support-inline.js').write_text(scripts[-1], encoding='utf-8')
+          PY
+          node --check /tmp/support-inline.js
 
       - name: Scan for committed secrets
         uses: gitleaks/gitleaks-action@v2
