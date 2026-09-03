@@ -1,0 +1,5 @@
+title = "Tonninyira Gitleaks configuration"
+
+[allowlist]
+description = "Supabase anon/public browser key is intentionally public; privileged keys remain blocked by CI."
+regexes = ['eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b3dwcWlibW4iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NTk5ODU0NCwiZXhwIjoyMTAxNTc0NTQ0fQ\.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA']
