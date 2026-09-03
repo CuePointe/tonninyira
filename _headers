@@ -1,23 +1,5 @@
 /*
-  Cloudflare Pages security headers.
-  Keep Supabase and required CDNs explicitly allow-listed.
-*/
-/*
-  Content-Security-Policy is intentionally report-only until every inline script
-  is migrated. The enforceable headers below are safe for the current app.
-*/
-/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-*/
-/*
-  Cloudflare Pages _headers syntax:
-*/
-/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Strict-Transport-Security: max-age=31536000; includeSubDomains
-*/
