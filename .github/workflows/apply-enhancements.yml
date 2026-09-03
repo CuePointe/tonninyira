@@ -20,22 +20,24 @@ jobs:
           ref: tonninyira-enhancements
           fetch-depth: 0
 
-      - name: Inject enhancement script without changing page structure
+      - name: Inject enhancement scripts without changing page structure
         shell: python
         run: |
           from pathlib import Path
           p = Path('index.html')
           html = p.read_text(encoding='utf-8')
-          tag = '<script src="enhancements.js"></script>'
-          if tag not in html:
-              marker = '</body>'
-              if marker not in html:
-                  raise SystemExit('Could not find </body> in index.html')
-              html = html.replace(marker, f'{tag}\n{marker}', 1)
-              p.write_text(html, encoding='utf-8')
-              print('Injected enhancements.js')
-          else:
-              print('enhancements.js already injected')
+          tags = [
+              '<script src="enhancements.js"></script>',
+              '<script src="enhancements-fix.js"></script>',
+          ]
+          marker = '</body>'
+          if marker not in html:
+              raise SystemExit('Could not find </body> in index.html')
+          for tag in tags:
+              if tag not in html:
+                  html = html.replace(marker, f'{tag}\n{marker}', 1)
+          p.write_text(html, encoding='utf-8')
+          print('Enhancement scripts present')
 
       - name: Commit enhancement injection
         shell: bash
