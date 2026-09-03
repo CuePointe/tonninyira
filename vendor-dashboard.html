@@ -1,322 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tonninyira — Stall Dashboard</title>
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="icon" href="assets/favicon-32.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root{
-    --ink:#1C1410; --card:#2A1F19; --card2:#33261C;
-    --red:#E23F25; --gold:#F5B400; --green:#4C9A5B;
-    --sand:#F3E8D8; --muted:#9C897A;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0; background:var(--ink); color:var(--sand); font-family:'Work Sans',sans-serif; padding-bottom:60px;}
-  .display{font-family:'Alfa Slab One',cursive;}
-  .hidden{display:none !important;}
-  .wrap{max-width:640px; margin:0 auto; padding:16px;}
-
-  header{background:var(--ink); border-bottom:1px solid rgba(243,232,216,0.08); padding:16px;}
-  .brand-row{display:flex; align-items:center; gap:10px; max-width:640px; margin:0 auto; justify-content:space-between;}
-  .brand-left{display:flex; align-items:center; gap:10px;}
-  .brand-text{display:flex; flex-direction:column; align-items:flex-start;}
-  .brand-badge{width:56px;height:56px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .brand-name{font-size:1.15rem; background:var(--card); padding:6px 12px; border-radius:9px; display:inline-block;}
-  .brand-tag{font-size:0.62rem; letter-spacing:1.5px; color:var(--gold); font-weight:700; margin-top:6px; background:var(--card); padding:3px 9px; border-radius:6px; display:inline-block;}
-  .back-link{color:var(--muted); font-size:0.82rem; font-weight:700; text-decoration:none; white-space:nowrap;}
-  .back-link:hover{color:var(--sand);}
-
-  h3{font-size:0.95rem; color:var(--gold); letter-spacing:0.5px; margin:22px 0 10px; text-transform:uppercase; font-weight:800;}
-  label{display:block; font-size:0.82rem; font-weight:700; color:var(--sand); margin:12px 0 5px;}
-  label .opt{color:var(--muted); font-weight:500; text-transform:none; letter-spacing:0;}
-  input[type=text], input[type=tel]{
-    width:100%; padding:12px; border-radius:10px; border:1px solid rgba(243,232,216,0.15);
-    background:var(--card); color:var(--sand); font-family:'Work Sans'; font-size:0.92rem;
-  }
-  input:focus{outline:none; border-color:var(--gold);}
-
-  .card{background:var(--card2); border-radius:14px; padding:14px; margin-top:10px; border:1px solid rgba(243,232,216,0.06);}
-  .btn-primary{width:100%; padding:15px; border-radius:12px; border:none; background:var(--red); color:var(--sand); font-family:'Alfa Slab One'; font-size:1rem; cursor:pointer; margin-top:20px;}
-  .btn-secondary{width:100%; padding:12px; border-radius:12px; border:1.5px solid var(--card2); background:transparent; color:var(--sand); font-weight:700; font-size:0.88rem; cursor:pointer; margin-top:10px;}
-  .helper{font-size:0.74rem; color:var(--muted); margin-top:4px; line-height:1.4;}
-  .error-text{color:var(--red); font-size:0.82rem; font-weight:700; margin-top:10px;}
-
-  .top-bar{display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; margin-top:6px;}
-  .top-bar .who{font-weight:800; font-size:1.05rem;}
-  .logout-link{background:none; border:none; color:var(--muted); font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:underline; padding:0;}
-
-  .order-card{background:var(--card2); border-radius:14px; padding:14px; margin-top:12px; border-left:4px solid var(--muted);}
-  .order-card.status-new{border-left-color:var(--red);}
-  .order-card.status-accepted, .order-card.status-preparing{border-left-color:var(--gold);}
-  .order-card.status-ready{border-left-color:var(--green);}
-  .order-card.status-completed, .order-card.status-declined{opacity:0.55;}
-  .order-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
-  .order-id{font-weight:800; font-family:'Alfa Slab One'; font-size:0.92rem;}
-  .order-time{font-size:0.72rem; color:var(--muted); margin-top:2px;}
-  .status-pill{display:inline-block; padding:4px 10px; border-radius:20px; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap;}
-  .status-pill.status-new{background:var(--red); color:var(--sand);}
-  .status-pill.status-accepted, .status-pill.status-preparing{background:var(--gold); color:var(--ink);}
-  .status-pill.status-ready{background:var(--green); color:var(--sand);}
-  .status-pill.status-completed, .status-pill.status-declined{background:var(--card); color:var(--muted);}
-  .order-item-line{display:flex; justify-content:space-between; font-size:0.86rem; padding:5px 0; border-bottom:1px dashed rgba(243,232,216,0.08);}
-  .order-meta{font-size:0.78rem; color:var(--muted); margin-top:8px;}
-  .order-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
-  .action-btn{flex:1; min-width:100px; padding:11px; border-radius:10px; border:none; font-weight:800; font-size:0.8rem; cursor:pointer;}
-  .action-accept{background:var(--gold); color:var(--ink);}
-  .action-ready{background:var(--green); color:var(--sand);}
-  .action-done{background:var(--card); color:var(--sand); border:1px solid rgba(243,232,216,0.15);}
-  .action-decline{background:none; color:var(--red); border:1px solid var(--red);}
-
-  .placeholder{text-align:center; padding:50px 20px; color:var(--muted);}
-  .placeholder h3{color:var(--sand); text-transform:none; letter-spacing:0; margin-bottom:6px;}
-</style>
-</head>
-<body>
-
-<header>
-  <div class="brand-row">
-    <div class="brand-left">
-      <div class="brand-badge" id="brandBadge"></div>
-      <div class="brand-text">
-        <div class="brand-name display">Tonninyira</div>
-        <div class="brand-tag">Stall Dashboard</div>
-      </div>
-    </div>
-    <a class="back-link" href="index.html">← Back to app</a>
-  </div>
-</header>
-
-<div class="wrap">
-
-  <div id="loginView">
-    <h3>Log In To Your Stall</h3>
-    <div class="card">
-      <label>Phone Number <span class="opt">(the one you registered with)</span></label>
-      <input type="tel" id="loginPhone" placeholder="e.g. 0772 123 456">
-      <label>4-Digit PIN</label>
-      <input type="tel" id="loginPin" maxlength="4" inputmode="numeric" placeholder="••••">
-      <button class="btn-primary" onclick="attemptLogin()">Log In</button>
-      <div id="loginError" class="error-text hidden"></div>
-      <p class="helper">Not registered yet? <a href="register.html?as=vendor" style="color:var(--gold);">Set up your stall here</a> — you'll choose your PIN during sign-up.</p>
-    </div>
-  </div>
-
-  <div id="dashView" class="hidden">
-    <div class="top-bar">
-      <div class="who" id="vendorWho"></div>
-      <button class="logout-link" onclick="logOut()">Log Out</button>
-    </div>
-    <p class="helper">Refreshes automatically every 20 seconds.</p>
-    <button class="btn-secondary" onclick="loadOrders()">↻ Refresh Now</button>
-    <div id="ordersList"></div>
-  </div>
-
-</div>
-
-<script>
-const SUPABASE_URL = 'https://alxzmjgepftohwpqibmn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b2h3cHFpYm1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTg1NDQsImV4cCI6MjEwMTU3NDU0NH0.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA';
-let supabaseClient;
-try{ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-catch(e){ supabaseClient = { from:()=>({select:()=>({eq:()=>({order:async()=>({data:null,error:'no client'})})})}), }; }
-
-function paintBrandSVG(){ document.getElementById('brandBadge').style.display = 'none'; }
-/* Enlarges "Tonninyira" until its rendered width matches the tagline's own
-   natural width -- the tagline is never touched. (Previous version did this
-   backwards: it letter-spaced the tagline to match the wordmark instead.)
-   Clamped to a sane range so a font-load hiccup can't blow the size out. */
-/* Enlarges "Tonninyira" until its chip's OUTER width (glyphs + its own fixed
-   padding) matches the tagline chip's outer width -- the tagline is never
-   touched. Padding is fixed px and doesn't scale with font-size, so this
-   solves for glyph-width, not total width, before computing the ratio.
-   Clamped to a sane range so a font-load hiccup can't blow the size out. */
-function matchWordmarkWidth(){
-  const word = document.querySelector('.brand-name');
-  const tag = document.querySelector('.brand-tag');
-  if(!word || !tag) return;
-  const wordStyle = getComputedStyle(word);
-  const wordPad = parseFloat(wordStyle.paddingLeft) + parseFloat(wordStyle.paddingRight);
-  const tagBoxWidth = tag.getBoundingClientRect().width;
-  const wordBoxWidth = word.getBoundingClientRect().width;
-  const wordTextWidth = wordBoxWidth - wordPad;
-  if(wordTextWidth <= 0 || tagBoxWidth <= 0) return;
-  const currentSize = parseFloat(wordStyle.fontSize);
-  const targetTextWidth = tagBoxWidth - wordPad;
-  const scale = Math.min(3, Math.max(0.5, targetTextWidth / wordTextWidth));
-  word.style.fontSize = (currentSize * scale).toFixed(2) + 'px';
+:root{--ink:#1c1410;--card:#2a1f19;--card2:#33261c;--sand:#f3e8d8;--gold:#f5b400;--red:#e23f25;--green:#4c9a5b;--muted:#9c897a}*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--sand);font:15px system-ui,sans-serif}.wrap{max-width:700px;margin:auto;padding:20px}.card{background:var(--card2);padding:18px;border-radius:14px;margin:12px 0}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff14;padding-bottom:14px}.brand{font-weight:900;font-size:1.2rem}.muted{color:var(--muted);font-size:.85rem}label{display:block;margin:12px 0 5px;font-weight:700}input{width:100%;padding:12px;border-radius:10px;border:1px solid #ffffff22;background:var(--card);color:var(--sand)}button{padding:11px 14px;border:0;border-radius:10px;font-weight:800;cursor:pointer}.primary{background:var(--red);color:var(--sand);width:100%;margin-top:15px}.secondary{background:transparent;border:1px solid #ffffff22;color:var(--sand)}.error{color:#ff8b77;font-weight:700;margin-top:10px}.order{border-left:4px solid var(--gold);padding:14px;background:var(--card);border-radius:10px;margin:10px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}.accept{background:var(--gold)}.ready{background:var(--green);color:white}.done{background:#4a3b31;color:white}.decline{background:transparent;border:1px solid var(--red);color:#ff806a}.hidden{display:none!important}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div><div class="brand">Tonninyira</div><div class="muted">Secure Stall Dashboard</div></div><a class="muted" href="index.html">← App</a></div>
+<section id="loginView" class="card"><h2>Log in to your stall</h2><label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel"><label for="pin">4-digit PIN</label><input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password"><button class="primary" id="loginBtn">Log In</button><div id="loginError" class="error hidden"></div><p class="muted">Only approved stalls can sign in. Authentication is handled server-side.</p></section>
+<section id="dashView" class="hidden"><div class="card"><div class="top"><div><strong id="vendorName"></strong><div id="vendorId" class="muted"></div></div><button class="secondary" id="logoutBtn">Log out</button></div><p class="muted">Your access is controlled by Supabase Auth and database row-level security.</p><button class="secondary" id="refreshBtn">↻ Refresh orders</button></div><div id="orders"></div></section>
+</div><script>
+const SUPABASE_URL='https://alxzmjgepftohwpqibmn.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptamdlcGZ0b2h3cHFpYm1uIiwiaWF0IjoxNzg1OTk4NTQ0LCJleHAiOjIxMDE1NzQ1NDR9.YvFQhCqL6spINPsyLs7lf7z5wxtnfi4U893ydWLXEaA';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let vendor=null;
+const $=id=>document.getElementById(id);
+function showLoginError(msg){$('loginError').textContent=msg;$('loginError').classList.remove('hidden')}
+async function login(){
+ $('loginError').classList.add('hidden'); const phone=$('phone').value.trim(),pin=$('pin').value.trim();
+ if(!/^\d{4}$/.test(pin)||!phone){showLoginError('Enter your phone number and 4-digit PIN.');return}
+ $('loginBtn').disabled=true;
+ try{
+  const {data,error}=await sb.functions.invoke('vendor-login',{body:{phone,pin}}); if(error||!data?.session) throw new Error(data?.error||error?.message||'Login failed');
+  const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token}); if(setError)throw setError;
+  vendor=data.vendor; renderDashboard(); await loadOrders();
+ }catch(e){showLoginError('Phone number or PIN is incorrect, or the stall is not approved.')}finally{$('loginBtn').disabled=false}
 }
-if(document.fonts && document.fonts.ready) document.fonts.ready.then(matchWordmarkWidth);
-else window.addEventListener('load', matchWordmarkWidth);
-
-function tryLoadFavicon(paths, i){
-  i = i || 0;
-  if(i >= paths.length) return;
-  const img = new Image();
-  img.onload = () => { if(i > 0){
-    document.querySelectorAll("link[rel~='icon']").forEach(l=>l.remove());
-    const link = document.createElement('link'); link.rel='icon'; link.type='image/png'; link.href=paths[i];
-    document.head.appendChild(link);
-  }};
-  img.onerror = () => tryLoadFavicon(paths, i+1);
-  img.src = paths[i];
+async function requireSession(){
+ const {data}=await sb.auth.getSession(); if(!data.session){return false}
+ const {data:p}=await sb.from('profiles').select('role,display_name,phone').eq('id',data.session.user.id).maybeSingle();
+ if(!p||p.role!=='vendor'){await sb.auth.signOut();return false}
+ const {data:v}=await sb.from('vendors').select('tonninyira_id,business_name,approval_status').eq('auth_user_id',data.session.user.id).eq('approval_status','approved').maybeSingle();
+ if(!v){await sb.auth.signOut();return false} vendor=v;return true
 }
-tryLoadFavicon(['assets/favicon-32.png','favicon-32.png','Assets/favicon-32.png','images/favicon-32.png','assets/Favicon-32.png']);
-
-function tryLoadLogo(paths, i){
-  i = i || 0;
-  if(i >= paths.length){ paintBrandSVG(); return; }
-  const img = new Image();
-  img.onload = () => {
-    document.getElementById('brandBadge').innerHTML = '';
-    img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px;';
-    document.getElementById('brandBadge').appendChild(img);
-  };
-  img.onerror = () => tryLoadLogo(paths, i+1);
-  img.src = paths[i];
-}
-tryLoadLogo(['assets/logo.png','logo.png','Assets/logo.png','images/logo.png','assets/Logo.png']);
-
-/* Same normalize + hash as register.html, so a login only succeeds when both
-   match what was set at sign-up. This checks the hash in the browser rather
-   than on a server -- consistent with how the rest of Tonninyira talks to
-   Supabase right now, but worth upgrading to a real server-side check (a
-   Supabase Edge Function, or full Supabase Auth) before a public launch --
-   see the note below the SQL in chat. */
-function normalizePhone(p){ return (p||'').replace(/[\s-]/g,''); }
-async function hashPin(phone, pin){
-  const data = new TextEncoder().encode(normalizePhone(phone) + ':' + pin.trim());
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-let currentVendor = null; // {tonninyira_id, business_name}
-let refreshTimer = null;
-
-async function attemptLogin(){
-  const phoneRaw = document.getElementById('loginPhone').value.trim();
-  const pin = document.getElementById('loginPin').value.trim();
-  const errEl = document.getElementById('loginError');
-  errEl.classList.add('hidden');
-  if(!phoneRaw || !/^\d{4}$/.test(pin)){
-    errEl.textContent = 'Enter your phone number and your 4-digit PIN.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  try{
-    const { data, error } = await supabaseClient.from('vendors').select('tonninyira_id,business_name,phone,pin_hash');
-    if(error) throw error;
-    const wantHash = await hashPin(phoneRaw, pin);
-    const wantPhone = normalizePhone(phoneRaw);
-    const match = (data||[]).find(v => normalizePhone(v.phone) === wantPhone && v.pin_hash === wantHash);
-    if(!match){
-      errEl.textContent = "Phone number or PIN doesn't match our records. Double-check and try again.";
-      errEl.classList.remove('hidden');
-      return;
-    }
-    currentVendor = { tonninyira_id: match.tonninyira_id, business_name: match.business_name };
-    localStorage.setItem('tonninyira_vendor_session', JSON.stringify(currentVendor));
-    showDashboard();
-  }catch(e){
-    errEl.textContent = 'Could not reach the server — check your connection and try again.';
-    errEl.classList.remove('hidden');
-    console.log('Login error:', e.message||e);
-  }
-}
-
-function showDashboard(){
-  document.getElementById('loginView').classList.add('hidden');
-  document.getElementById('dashView').classList.remove('hidden');
-  document.getElementById('vendorWho').textContent = 'Welcome back, ' + (currentVendor.business_name||'');
-  loadOrders();
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadOrders, 20000);
-}
-function logOut(){
-  currentVendor = null;
-  localStorage.removeItem('tonninyira_vendor_session');
-  if(refreshTimer) clearInterval(refreshTimer);
-  document.getElementById('dashView').classList.add('hidden');
-  document.getElementById('loginView').classList.remove('hidden');
-  document.getElementById('loginPhone').value = '';
-  document.getElementById('loginPin').value = '';
-}
-
-const STATUS_LABEL = { new:'New', accepted:'Accepted', preparing:'Preparing', ready:'Ready for Pickup', completed:'Completed', declined:'Declined' };
-function timeAgo(iso){
-  const mins = Math.round((Date.now() - new Date(iso).getTime())/60000);
-  if(mins < 1) return 'just now';
-  if(mins < 60) return mins + ' min ago';
-  const hrs = Math.round(mins/60);
-  if(hrs < 24) return hrs + ' hr ago';
-  return new Date(iso).toLocaleDateString();
-}
-
+function renderDashboard(){$('loginView').classList.add('hidden');$('dashView').classList.remove('hidden');$('vendorName').textContent=vendor.business_name;$('vendorId').textContent=vendor.tonninyira_id}
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function itemLines(items){if(!Array.isArray(items))return '<div class="muted">Items unavailable</div>';return items.map(i=>`<div><b>${esc(i.name||'Item')}</b> × ${Number(i.qty||i.quantity||1)}</div>`).join('')}
 async function loadOrders(){
-  if(!currentVendor) return;
-  try{
-    const { data, error } = await supabaseClient.from('orders').select('*')
-      .eq('vendor_id', currentVendor.tonninyira_id).order('created_at', {ascending:false});
-    if(error) throw error;
-    renderOrders(data||[]);
-  }catch(e){
-    document.getElementById('ordersList').innerHTML = `<div class="placeholder"><p>Couldn't load orders (${e.message||e}).</p></div>`;
-  }
+ const {data,error}=await sb.from('orders').select('id,order_id,items,subtotal,delivery_fee,total,delivery_area,delivery_option,payment_method,status,created_at,customer_phone').order('created_at',{ascending:false}).limit(50);
+ if(error){$('orders').innerHTML='<div class="card error">Could not load orders.</div>';return}
+ $('orders').innerHTML=data?.length?data.map(o=>`<article class="order"><div><b>${esc(o.order_id||o.id)}</b> <span class="muted">${esc(o.status||'pending')}</span></div><div style="margin-top:8px">${itemLines(o.items)}</div><div class="muted">Total: UGX ${Number(o.total||0).toLocaleString()} · ${esc(o.delivery_area||'')}</div><div class="actions">${o.status==='pending'?`<button class="accept" onclick="setStatus('${esc(o.id)}','accepted')">Accept</button><button class="decline" onclick="setStatus('${esc(o.id)}','declined')">Decline</button>`:''}${o.status==='accepted'?`<button class="ready" onclick="setStatus('${esc(o.id)}','ready')">Mark ready</button>`:''}${o.status==='ready'?`<button class="done" onclick="setStatus('${esc(o.id)}','completed')">Complete</button>`:''}</div></article>`).join(''):'<div class="card muted">No orders yet.</div>';
 }
-
-function renderOrders(orders){
-  const el = document.getElementById('ordersList');
-  if(!orders.length){
-    el.innerHTML = `<div class="placeholder">${''}<h3>No orders yet</h3><p>New orders from customers will show up here automatically.</p></div>`;
-    return;
-  }
-  el.innerHTML = orders.map(o=>{
-    const items = o.items||[];
-    return `
-    <div class="order-card status-${o.status}">
-      <div class="order-top">
-        <div>
-          <div class="order-id">${o.order_id}</div>
-          <div class="order-time">${timeAgo(o.created_at)} · ${o.customer_area||'area not given'}</div>
-        </div>
-        <span class="status-pill status-${o.status}">${STATUS_LABEL[o.status]||o.status}</span>
-      </div>
-      ${items.map(it=>`<div class="order-item-line"><span>${it.name} ×${it.qty}</span><span>UGX ${Number(it.price*it.qty).toLocaleString()}</span></div>`).join('')}
-      <div class="order-meta">Payment: ${o.payment_method} · Rider: ${o.rider_tid||'—'}</div>
-      <div class="order-actions">${actionsFor(o.status, o.id)}</div>
-    </div>`;
-  }).join('');
-}
-
-function actionsFor(status, id){
-  if(status==='new') return `
-    <button class="action-btn action-accept" onclick="updateStatus(${id},'accepted')">Accept</button>
-    <button class="action-btn action-decline" onclick="updateStatus(${id},'declined')">Decline</button>`;
-  if(status==='accepted') return `<button class="action-btn action-accept" onclick="updateStatus(${id},'preparing')">Start Preparing</button>`;
-  if(status==='preparing') return `<button class="action-btn action-ready" onclick="updateStatus(${id},'ready')">Mark Ready for Pickup</button>`;
-  if(status==='ready') return `<button class="action-btn action-done" onclick="updateStatus(${id},'completed')">Mark Completed</button>`;
-  return '';
-}
-
-async function updateStatus(id, status){
-  try{
-    await supabaseClient.from('orders').update({status, updated_at:new Date().toISOString()}).eq('id', id);
-    loadOrders();
-  }catch(e){ console.log('Status update failed:', e.message||e); }
-}
-
-(function restoreSession(){
-  try{
-    const saved = JSON.parse(localStorage.getItem('tonninyira_vendor_session')||'null');
-    if(saved && saved.tonninyira_id){ currentVendor = saved; showDashboard(); }
-  }catch(e){}
-})();
-</script>
-</body>
-</html>
+async function setStatus(id,status){const allowed=['accepted','declined','ready','completed'];if(!allowed.includes(status))return;const {error}=await sb.from('orders').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(error)alert('That order could not be updated.');else loadOrders()}
+async function logout(){await sb.auth.signOut();vendor=null;$('dashView').classList.add('hidden');$('loginView').classList.remove('hidden')}
+$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadOrders;
+(async()=>{if(await requireSession()){renderDashboard();loadOrders()}})();
+</script></body></html>
