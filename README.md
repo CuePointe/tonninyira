@@ -1,15 +1,25 @@
 # Tonninyira
 
-Affordable online market connecting customers to verified local vendors and delivery riders.
+Affordable online market connecting customers with verified local vendors and delivery riders.
 
 ## Current release
 
-The release includes authenticated customer accounts, secure order ownership, approved vendor/rider onboarding, rate-limited vendor PIN login, product search and filters, wishlists, verified reviews, private support chat with a staff inbox, and automatic loyalty points for completed orders.
+- Customer authentication with Supabase Auth email OTP/magic links.
+- Authenticated checkout with server-bound order ownership.
+- Approved vendor/rider onboarding and rate-limited vendor PIN login.
+- Search plus category, area, price, size, colour and sort filters.
+- Product wishlists.
+- Verified customer reviews restricted to completed orders.
+- Private customer support chat plus staff support inbox.
+- Automatic loyalty points for completed orders.
+- Server-side order pricing, delivery-fee and status integrity.
+- Public catalog views with intended customer-facing fields only.
+- RLS and security hardening across customer and marketplace data.
 
-## Security
+## Staff support
 
-Supabase Row Level Security protects customer and marketplace data. Profile role escalation is protected server-side. Public catalog views use invoker security. Sensitive helper functions have fixed search paths and client execution is revoked. Privileged credentials stay server-side in Edge Functions.
+Authorized `staff` and `admin` users can use `support.html` to manage open customer support conversations.
 
 ## Production boundary
 
-Customer payment is currently cash-on-delivery. Real payment-gateway integration and hardened media-upload/storage flows remain separate next-phase production features.
+The current checkout is cash-on-delivery. Real payment-gateway integration and hardened media upload/storage remain separate next-phase features.
