@@ -1,0 +1,78 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, security-hardening]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check customer JavaScript syntax
+        run: node --check customer-app.js
+
+      - name: Check staff page JavaScript syntax
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('support.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.S|re.I)
+          if not scripts:
+              raise SystemExit('No inline support script found')
+          Path('/tmp/support-inline.js').write_text(scripts[-1], encoding='utf-8')
+          PY
+          node --check /tmp/support-inline.js
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for hardcoded privileged Supabase credentials
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          skip = {'.git', '.github'}
+          patterns = [
+              re.compile(r'SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*[\'\"]'),
+              re.compile(r'service_role\s*[:=]\s*[\'\"]eyJ'),
+              re.compile(r'sb_secret_[A-Za-z0-9]+'),
+          ]
+          hits = []
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or any(part in skip for part in p.parts):
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8', errors='ignore')
+              except Exception:
+                  continue
+              for pat in patterns:
+                  if pat.search(text):
+                      hits.append(str(p))
+                      break
+          if hits:
+              print('\n'.join(hits))
+              raise SystemExit('Hardcoded privileged Supabase credentials must never be committed.')
+          PY
+
+      - name: Check for obvious credential files
+        shell: bash
+        run: |
+          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' | grep -q .; then
+            echo 'Potential credential file found in repository.'
+            exit 1
+          fi

@@ -1,0 +1,7 @@
+project_id = "alxzmjgepftohwpqibmn"
+
+[functions.vendor-login]
+verify_jwt = false
+
+[functions.register-application]
+verify_jwt = false
