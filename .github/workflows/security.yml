@@ -43,7 +43,7 @@ jobs:
       - name: Check for privileged Supabase keys
         shell: bash
         run: |
-          if grep -RInE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY' --exclude-dir=.git .; then
+          if grep -RInE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY' --exclude-dir=.git --exclude='.github/workflows/security.yml' .; then
             echo 'Privileged Supabase credentials must never be committed.'
             exit 1
           fi
@@ -51,7 +51,7 @@ jobs:
       - name: Check for obvious credential files
         shell: bash
         run: |
-          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' | grep -q .; then
+          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' -not -path './.github/workflows/security.yml' | grep -q .; then
             echo 'Potential credential file found in repository.'
             exit 1
           fi
