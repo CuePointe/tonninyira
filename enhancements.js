@@ -11,32 +11,49 @@
   const CART_KEY = 'tonninyira_cart_v2';
   const SEARCH_KEY = 'tonninyira_recent_searches_v1';
   const REWARD_CACHE_KEY = 'tonninyira_reward_cache_v1';
-  const originalAddToCart = window.addToCart;
-  const originalUpdateQty = window.updateQty;
-  const originalResetApp = window.resetApp;
-  const originalRenderSearchResults = window.renderSearchResults;
-  const originalRenderMain = window.renderMain;
-  const originalGoView = window.goView;
+  const originalAddToCart = typeof window.addToCart === 'function' ? window.addToCart : null;
+  const originalUpdateQty = typeof window.updateQty === 'function' ? window.updateQty : null;
+  const originalResetApp = typeof window.resetApp === 'function' ? window.resetApp : null;
+  const originalRenderSearchResults = typeof window.renderSearchResults === 'function' ? window.renderSearchResults : null;
+  const originalRenderMain = typeof window.renderMain === 'function' ? window.renderMain : null;
+  const originalGoView = typeof window.goView === 'function' ? window.goView : null;
+
+  function state() {
+    return (typeof AppState !== 'undefined') ? AppState : null;
+  }
+  function catalog() {
+    return (typeof CATALOG !== 'undefined') ? CATALOG : null;
+  }
+  function client() {
+    return (typeof supabaseClient !== 'undefined') ? supabaseClient : null;
+  }
+  function icons() {
+    return (typeof ICONS !== 'undefined') ? ICONS : {};
+  }
 
   function safeParse(value, fallback) {
     try { return JSON.parse(value); } catch (_) { return fallback; }
   }
 
   function persistCart() {
-    try { localStorage.setItem(CART_KEY, JSON.stringify(window.AppState?.cart || [])); } catch (_) {}
+    try {
+      const s = state();
+      localStorage.setItem(CART_KEY, JSON.stringify(s && Array.isArray(s.cart) ? s.cart : []));
+    } catch (_) {}
   }
 
   function restoreCart() {
     try {
+      const s = state();
+      if (!s || !Array.isArray(s.cart)) return;
       const saved = safeParse(localStorage.getItem(CART_KEY), []);
       if (!Array.isArray(saved)) return;
-      if (!window.AppState || !Array.isArray(window.AppState.cart)) return;
-      window.AppState.cart.splice(0, window.AppState.cart.length, ...saved);
+      s.cart.splice(0, s.cart.length, ...saved);
       if (typeof window.updateCartUI === 'function') window.updateCartUI();
     } catch (_) {}
   }
 
-  if (typeof originalAddToCart === 'function') {
+  if (originalAddToCart) {
     window.addToCart = function (...args) {
       const result = originalAddToCart.apply(this, args);
       persistCart();
@@ -44,7 +61,7 @@
     };
   }
 
-  if (typeof originalUpdateQty === 'function') {
+  if (originalUpdateQty) {
     window.updateQty = function (...args) {
       const result = originalUpdateQty.apply(this, args);
       persistCart();
@@ -52,7 +69,7 @@
     };
   }
 
-  if (typeof originalResetApp === 'function') {
+  if (originalResetApp) {
     window.resetApp = function (...args) {
       const result = originalResetApp.apply(this, args);
       persistCart();
@@ -74,17 +91,22 @@
 
   function enhancedSearchResults() {
     const el = document.getElementById('mainArea');
-    if (!el || !window.CATALOG || !window.AppState) return;
+    const s = state();
+    const c = catalog();
+    if (!el || !s || !c) return;
 
-    const term = String(window.AppState.searchTerm || '').trim().toLowerCase();
-    if (!term) return originalRenderSearchResults?.();
+    const term = String(s.searchTerm || '').trim().toLowerCase();
+    if (!term) {
+      if (originalRenderSearchResults) originalRenderSearchResults();
+      return;
+    }
 
-    const normalize = s => String(s || '').toLowerCase();
+    const normalize = value => String(value || '').toLowerCase();
     const tokens = term.split(/\s+/).filter(Boolean);
     const score = text => tokens.reduce((n, token) => n + (text.includes(token) ? 1 : 0), 0);
     const matches = [];
 
-    Object.entries(window.CATALOG).forEach(([catKey, cat]) => {
+    Object.entries(c).forEach(([catKey, cat]) => {
       Object.entries(cat.subs || {}).forEach(([subKey, sub]) => {
         (sub.vendors || []).forEach(v => {
           const vendorText = [v.name, v.location, cat.label, sub.label].map(normalize).join(' ');
@@ -99,7 +121,8 @@
 
     matches.sort((a, b) => b.rank - a.rank || String(a.vendor.name).localeCompare(String(b.vendor.name)));
     if (!matches.length) {
-      el.innerHTML = `<div class="empty-state">${window.ICONS?.search || ''}<p style="font-weight:700;color:var(--sand);">Nothing matches "${term.replace(/[&<>\"']/g, '')}"</p><p>Try the name of a dish, item, stall or area.</p></div>`;
+      const clean = term.replace(/[&<>\"']/g, '');
+      el.innerHTML = `<div class="empty-state">${icons().search || ''}<p style="font-weight:700;color:var(--sand);">Nothing matches "${clean}"</p><p>Try the name of a dish, item, stall or area.</p></div>`;
       saveRecentSearch(term);
       return;
     }
@@ -136,6 +159,7 @@
     const search = document.getElementById('searchInput');
     if (search) {
       search.setAttribute('aria-label', 'Search stalls and items');
+      search.setAttribute('inputmode', 'search');
       search.autocomplete = 'off';
     }
     const area = document.getElementById('areaSelect');
@@ -146,20 +170,19 @@
     const search = document.getElementById('searchInput');
     if (!search || search.dataset.enhanced) return;
     search.dataset.enhanced = '1';
-    search.setAttribute('inputmode', 'search');
     search.addEventListener('keydown', e => {
       if (e.key === 'Enter') saveRecentSearch(search.value);
     });
   }
 
   async function loadRewards() {
-    const client = window.supabaseClient;
-    if (!client?.auth?.getSession) return null;
+    const db = client();
+    if (!db || !db.auth || !db.auth.getSession) return null;
     try {
-      const { data: sessionData } = await client.auth.getSession();
+      const { data: sessionData } = await db.auth.getSession();
       const user = sessionData?.session?.user;
       if (!user) return null;
-      const { data, error } = await client.from('loyalty_accounts')
+      const { data, error } = await db.from('loyalty_accounts')
         .select('points,lifetime_points')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -168,14 +191,15 @@
         localStorage.setItem(REWARD_CACHE_KEY, JSON.stringify(data));
         return data;
       }
-    } catch (e) {
+    } catch (_) {
       return safeParse(localStorage.getItem(REWARD_CACHE_KEY), null);
     }
     return null;
   }
 
   function injectProfileExtras() {
-    if (window.AppState?.view !== 'profile') return;
+    const s = state();
+    if (!s || s.view !== 'profile') return;
     const main = document.getElementById('mainArea');
     if (!main || main.querySelector('[data-tn-enhancements]')) return;
 
@@ -204,19 +228,19 @@
     });
 
     wrap.querySelector('#tnSupportBtn')?.addEventListener('click', async () => {
-      const client = window.supabaseClient;
-      if (!client?.auth?.getSession) {
+      const db = client();
+      if (!db || !db.auth || !db.auth.getSession) {
         alert('Support is not available yet.');
         return;
       }
-      const { data } = await client.auth.getSession();
+      const { data } = await db.auth.getSession();
       const session = data?.session;
       if (!session) {
         alert('Please use the existing Sign In option first.');
         return;
       }
       let convo;
-      const found = await client.from('support_conversations')
+      const found = await db.from('support_conversations')
         .select('id,status')
         .eq('customer_id', session.user.id)
         .eq('status', 'open')
@@ -225,27 +249,27 @@
         .maybeSingle();
       if (found.data) convo = found.data;
       else {
-        const created = await client.from('support_conversations')
+        const created = await db.from('support_conversations')
           .insert({ customer_id: session.user.id, status: 'open' })
           .select('id,status')
           .single();
         convo = created.data;
       }
       if (!convo) { alert('Could not open support right now.'); return; }
-      const messages = await client.from('support_messages')
+      const messages = await db.from('support_messages')
         .select('body,created_at,sender_user_id')
         .eq('conversation_id', convo.id)
         .order('created_at');
       const text = (messages.data || []).map(m => `${m.sender_user_id === session.user.id ? 'You' : 'Support'}: ${m.body}`).join('\n\n');
       const body = prompt(`Private support chat\n\n${text || 'No messages yet.'}\n\nType your message:`);
       if (!body?.trim()) return;
-      await client.from('support_messages').insert({ conversation_id: convo.id, sender_user_id: session.user.id, body: body.trim() });
+      await db.from('support_messages').insert({ conversation_id: convo.id, sender_user_id: session.user.id, body: body.trim() });
       alert('Message sent to Tonninyira Support.');
     });
   }
 
   function installProfileHook() {
-    if (typeof originalRenderMain !== 'function') return;
+    if (!originalRenderMain) return;
     window.renderMain = function (...args) {
       const result = originalRenderMain.apply(this, args);
       window.setTimeout(injectProfileExtras, 0);
@@ -255,7 +279,7 @@
   }
 
   function installGoViewHook() {
-    if (typeof originalGoView !== 'function') return;
+    if (!originalGoView) return;
     window.goView = function (...args) {
       const result = originalGoView.apply(this, args);
       window.setTimeout(injectProfileExtras, 0);
@@ -268,16 +292,6 @@
     if (!gallery || gallery.dataset.enhanced) return;
     gallery.dataset.enhanced = '1';
     gallery.setAttribute('aria-live', 'polite');
-    gallery.parentElement?.addEventListener('touchstart', e => {
-      gallery.dataset.touchStartX = String(e.changedTouches[0].clientX);
-    }, { passive: true });
-    gallery.parentElement?.addEventListener('touchend', e => {
-      const start = Number(gallery.dataset.touchStartX || 0);
-      const end = e.changedTouches[0].clientX;
-      if (Math.abs(end - start) < 45) return;
-      if (end < start && typeof window.goToHeroSlide === 'function') window.goToHeroSlide(Math.min((window.heroIndex || 0) + 1, (window.MARKET_PHOTOS?.length || 1) - 1));
-      if (end > start && typeof window.goToHeroSlide === 'function') window.goToHeroSlide(Math.max((window.heroIndex || 0) - 1, 0));
-    }, { passive: true });
   }
 
   function refreshEnhancements() {
@@ -293,9 +307,4 @@
   document.addEventListener('DOMContentLoaded', refreshEnhancements);
   window.setTimeout(refreshEnhancements, 250);
   window.setTimeout(refreshEnhancements, 1200);
-
-  /* Keep the branch's original simple architecture intact while making the
-     customer experience more forgiving: cart survives refreshes, searches
-     understand descriptions/locations, controls have labels, and Profile
-     gains optional rewards/support access when authenticated. */
 })();
