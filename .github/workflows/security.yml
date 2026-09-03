@@ -18,6 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check JavaScript syntax
+        run: node --check customer-app.js
+
       - name: Scan for committed secrets
         uses: gitleaks/gitleaks-action@v2
         env:
