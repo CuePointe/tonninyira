@@ -1,0 +1,38 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, security-hardening]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for privileged Supabase keys
+        shell: bash
+        run: |
+          if grep -RInE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY' --exclude-dir=.git .; then
+            echo 'Privileged Supabase credentials must never be committed.'
+            exit 1
+          fi
+
+      - name: Check for obvious credential files
+        shell: bash
+        run: |
+          if find . -type f \( -name '.env' -o -name 'secrets.json' -o -name '*.pem' -o -name '*.key' \) -not -path './.git/*' | grep -q .; then
+            echo 'Potential credential file found in repository.'
+            exit 1
+          fi
