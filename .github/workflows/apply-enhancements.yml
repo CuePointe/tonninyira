@@ -22,13 +22,15 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          p = Path('index.html')
-          html = p.read_text(encoding='utf-8')
+
+          index = Path('index.html')
+          html = index.read_text(encoding='utf-8')
           tags = [
               '<script src="enhancements.js"></script>',
               '<script src="enhancements-fix.js"></script>',
               '<script src="profile-copy-enhancements.js"></script>',
-              '<script src="account-location-enhancements.js"></script>',
+              '<script src="account-role-location-enhancements.js"></script>',
+              '<script src="account-first-flow-fix.js"></script>',
           ]
           marker = '</body>'
           if marker not in html:
@@ -36,7 +38,20 @@ jobs:
           for tag in tags:
               if tag not in html:
                   html = html.replace(marker, f'{tag}\n{marker}', 1)
-          p.write_text(html, encoding='utf-8')
+          index.write_text(html, encoding='utf-8')
+
+          for page in ('vendor-dashboard.html', 'rider-dashboard.html'):
+              p = Path(page)
+              if not p.exists():
+                  continue
+              h = p.read_text(encoding='utf-8')
+              tag = '<script src="partner-dashboard-auth-earnings.js"></script>'
+              if tag not in h:
+                  if marker not in h:
+                      raise SystemExit(f'Could not find </body> in {page}')
+                  h = h.replace(marker, f'{tag}\n{marker}', 1)
+                  p.write_text(h, encoding='utf-8')
+
           print('Enhancement scripts present')
 
       - name: Commit enhancement injection
@@ -44,10 +59,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
+          git add index.html vendor-dashboard.html rider-dashboard.html
           if git diff --cached --quiet; then
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Integrate account and location enhancements [skip enhancement injector]'
+          git commit -m 'Integrate account-first auth and partner earnings [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
