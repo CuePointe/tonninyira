@@ -29,6 +29,7 @@ jobs:
           tags = [
               '<script src="enhancements.js"></script>',
               '<script src="enhancements-fix.js"></script>',
+              '<script src="profile-copy-enhancements.js"></script>',
           ]
           marker = '</body>'
           if marker not in html:
@@ -49,5 +50,5 @@ jobs:
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Integrate enhancement layer into original UI [skip enhancement injector]'
+          git commit -m 'Integrate profile and copy enhancements into original UI [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
