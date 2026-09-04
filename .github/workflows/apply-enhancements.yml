@@ -2,8 +2,6 @@ name: Apply Tonninyira enhancement layer
 
 on:
   push:
-    paths-ignore:
-      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
