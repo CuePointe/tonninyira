@@ -29,8 +29,10 @@ jobs:
               '<script src="enhancements.js"></script>',
               '<script src="enhancements-fix.js"></script>',
               '<script src="profile-copy-enhancements.js"></script>',
+              '<script src="account-location-enhancements.js"></script>',
               '<script src="account-role-location-enhancements.js"></script>',
               '<script src="account-first-flow-fix.js"></script>',
+              '<script src="auth-gate.js"></script>',
           ]
           marker = '</body>'
           if marker not in html:
@@ -64,5 +66,5 @@ jobs:
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Integrate account-first auth and partner earnings [skip enhancement injector]'
+          git commit -m 'Make account authentication the mandatory app entry point [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
