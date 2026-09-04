@@ -18,21 +18,28 @@ jobs:
           ref: tonninyira-enhancements
           fetch-depth: 0
 
-      - name: Inject enhancement scripts without changing page structure
+      - name: Inject public browsing and account-gated transaction layer
         shell: python
         run: |
           from pathlib import Path
 
           index = Path('index.html')
           html = index.read_text(encoding='utf-8')
-          tags = [
-              '<script src="enhancements.js"></script>',
-              '<script src="enhancements-fix.js"></script>',
-              '<script src="profile-copy-enhancements.js"></script>',
+
+          remove_tags = [
               '<script src="account-location-enhancements.js"></script>',
               '<script src="account-role-location-enhancements.js"></script>',
               '<script src="account-first-flow-fix.js"></script>',
               '<script src="auth-gate.js"></script>',
+          ]
+          for tag in remove_tags:
+              html = html.replace(tag + '\n', '').replace(tag, '')
+
+          tags = [
+              '<script src="enhancements.js"></script>',
+              '<script src="enhancements-fix.js"></script>',
+              '<script src="profile-copy-enhancements.js"></script>',
+              '<script src="guest-access-flow.js"></script>',
           ]
           marker = '</body>'
           if marker not in html:
@@ -54,9 +61,9 @@ jobs:
                   h = h.replace(marker, f'{tag}\n{marker}', 1)
                   p.write_text(h, encoding='utf-8')
 
-          print('Enhancement scripts present')
+          print('Public browsing + account-gated transactions + partner earnings present')
 
-      - name: Commit enhancement injection
+      - name: Commit integration
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
@@ -66,5 +73,5 @@ jobs:
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Make account authentication the mandatory app entry point [skip enhancement injector]'
+          git commit -m 'Allow public browsing and gate only business transactions [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
