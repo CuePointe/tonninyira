@@ -18,7 +18,7 @@ jobs:
           ref: tonninyira-enhancements
           fetch-depth: 0
 
-      - name: Inject public browsing and account-gated transaction layer
+      - name: Inject public browsing, account transactions, wallet and visual gallery layer
         shell: python
         run: |
           from pathlib import Path
@@ -40,6 +40,8 @@ jobs:
               '<script src="enhancements-fix.js"></script>',
               '<script src="profile-copy-enhancements.js"></script>',
               '<script src="guest-access-flow.js"></script>',
+              '<script src="partner-wallet-payouts.js"></script>',
+              '<script src="market-gallery-fix.js"></script>',
           ]
           marker = '</body>'
           if marker not in html:
@@ -54,24 +56,24 @@ jobs:
               if not p.exists():
                   continue
               h = p.read_text(encoding='utf-8')
-              tag = '<script src="partner-dashboard-auth-earnings.js"></script>'
-              if tag not in h:
-                  if marker not in h:
-                      raise SystemExit(f'Could not find </body> in {page}')
-                  h = h.replace(marker, f'{tag}\n{marker}', 1)
-                  p.write_text(h, encoding='utf-8')
+              for tag in ('<script src="partner-dashboard-auth-earnings.js"></script>', '<script src="partner-wallet-payouts.js"></script>'):
+                  if tag not in h:
+                      if marker not in h:
+                          raise SystemExit(f'Could not find </body> in {page}')
+                      h = h.replace(marker, f'{tag}\n{marker}', 1)
+              p.write_text(h, encoding='utf-8')
 
-          print('Public browsing + account-gated transactions + partner earnings present')
+          print('Public browsing + account-gated transactions + wallet/payouts + sign-out + visual gallery present')
 
       - name: Commit integration
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+users.noreply.github.com'
           git add index.html vendor-dashboard.html rider-dashboard.html
           if git diff --cached --quiet; then
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Allow public browsing and gate only business transactions [skip enhancement injector]'
+          git commit -m 'Add partner withdrawals, sign-out and visible market slides [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
