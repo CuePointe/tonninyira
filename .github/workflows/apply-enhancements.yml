@@ -18,7 +18,7 @@ jobs:
           ref: tonninyira-enhancements
           fetch-depth: 0
 
-      - name: Inject public browsing, account transactions, wallet, gallery and performance layer
+      - name: Inject public browsing, account transactions, wallet, gallery, session and wishlist layer
         shell: python
         run: |
           from pathlib import Path
@@ -40,6 +40,9 @@ jobs:
               '<script src="enhancements-fix.js"></script>',
               '<script src="profile-copy-enhancements.js"></script>',
               '<script src="guest-access-flow.js"></script>',
+              '<script src="session-compat.js"></script>',
+              '<script src="support-session-fix.js"></script>',
+              '<script src="wishlist-account.js"></script>',
               '<script src="partner-wallet-payouts.js"></script>',
               '<script src="signout-visible.js"></script>',
               '<script src="market-gallery-fix.js"></script>',
@@ -65,7 +68,7 @@ jobs:
                       h = h.replace(marker, f'{tag}\n{marker}', 1)
               p.write_text(h, encoding='utf-8')
 
-          print('Public browsing + account-gated transactions + wallet/payouts + sign-out + optimized gallery present')
+          print('Enhanced session, public browsing, account transactions, wishlist, wallet/payouts, sign-out and gallery present')
 
       - name: Commit integration
         shell: bash
@@ -77,5 +80,5 @@ jobs:
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Optimize page loading and customer demo journey [skip enhancement injector]'
+          git commit -m 'Wire shared auth session and customer wishlist [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
