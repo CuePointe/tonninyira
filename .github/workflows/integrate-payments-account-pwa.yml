@@ -5,7 +5,11 @@ on:
   push:
     paths:
       - 'flutterwave-payments.js'
+      - 'flutterwave-payments-v2.js'
       - 'account-session-ui.js'
+      - 'session-compat.js'
+      - 'wishlist-account.js'
+      - 'support-session-fix.js'
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'payment-return.html'
@@ -37,7 +41,11 @@ jobs:
             if tag not in h:
               h=h.replace('</head>',tag+'\n</head>',1)
           for tag in [
+            '<script src="session-compat.js"></script>',
             '<script src="account-session-ui.js"></script>',
+            '<script src="support-session-fix.js"></script>',
+            '<script src="wishlist-account.js"></script>',
+            '<script src="flutterwave-payments-v2.js"></script>',
             '<script src="flutterwave-payments.js"></script>',
             "<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>",
           ]:
@@ -45,17 +53,16 @@ jobs:
               h=h.replace('</body>',tag+'\n</body>',1)
           p.write_text(h,encoding='utf-8')
 
-          pr=Path('payment-return.html')
-          ph=pr.read_text(encoding='utf-8')
-          ph=ph.replace("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptj...","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptj")
-          pr.write_text(ph,encoding='utf-8')
+          # Never rewrite payment-return.html with a partial/placeholder key.
+          # Public client configuration belongs in the page itself; secrets stay
+          # in Supabase Edge Function secrets and are never committed here.
 
       - name: Commit integration
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html payment-return.html
+          git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Integrate account payment and app install layer [skip enhancement injector]'
+          git commit -m 'Integrate shared auth session, wishlist and payment layer [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
