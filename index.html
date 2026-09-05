@@ -287,6 +287,9 @@
   .rider-card{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px; padding:14px; width:100%; margin-top:14px;}
   .verify-check svg{width:14px;height:14px; color:var(--green); vertical-align:-2px;}
 </style>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="theme-color" content="#1f1712">
 </head>
 <body>
 
@@ -1261,5 +1264,8 @@ loadLiveRiders();
 <script src="market-gallery-fix.js"></script>
 <script src="signout-visible.js"></script>
 <script src="performance-optimizations.js"></script>
+<script src="account-session-ui.js"></script>
+<script src="flutterwave-payments.js"></script>
+<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 </body>
 </html>
