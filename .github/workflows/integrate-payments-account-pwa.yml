@@ -1,0 +1,61 @@
+name: Integrate Tonninyira payments account and PWA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'flutterwave-payments.js'
+      - 'account-session-ui.js'
+      - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'payment-return.html'
+      - '.github/workflows/integrate-payments-account-pwa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tonninyira-enhancements
+          fetch-depth: 0
+
+      - name: Patch site entry points
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          h=p.read_text(encoding='utf-8')
+          for tag in [
+            '<link rel="manifest" href="./manifest.webmanifest">',
+            '<link rel="apple-touch-icon" href="./apple-touch-icon.png">',
+            '<meta name="theme-color" content="#1f1712">',
+          ]:
+            if tag not in h:
+              h=h.replace('</head>',tag+'\n</head>',1)
+          for tag in [
+            '<script src="account-session-ui.js"></script>',
+            '<script src="flutterwave-payments.js"></script>',
+            "<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>",
+          ]:
+            if tag not in h:
+              h=h.replace('</body>',tag+'\n</body>',1)
+          p.write_text(h,encoding='utf-8')
+
+          pr=Path('payment-return.html')
+          ph=pr.read_text(encoding='utf-8')
+          ph=ph.replace("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptj...","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFseHptj")
+          pr.write_text(ph,encoding='utf-8')
+
+      - name: Commit integration
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html payment-return.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Integrate account payment and app install layer [skip enhancement injector]'
+          git push origin HEAD:tonninyira-enhancements
