@@ -1,461 +1,423 @@
-# 🛒 Tonninyira Online App
-## Affordable E-Commerce & Fast Food Delivery for Kampala 🇺🇬
+<div align="center">
 
-![Tonninyira Banner](https://img.shields.io/badge/Tonninyira-v2.0--Production-orange?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Production%20Ready-green?style=flat-square)
-![GitHub](https://img.shields.io/badge/GitHub-Public%20Repo-blue?style=flat-square)
-![Cloudflare](https://img.shields.io/badge/Hosted-Cloudflare%20Pages-orange?style=flat-square)
-![Supabase](https://img.shields.io/badge/Backend-Supabase-green?style=flat-square)
+<a href="https://github.com/CuePointe/tonninyira">
+  <img src="assets/tonninyira-mark.svg" alt="Tonninyira" width="760">
+</a>
+
+# Tonninyira
+
+### A local-first marketplace for discovering, ordering from and working with trusted neighbourhood businesses in Uganda.
+
+<p>
+  <a href="https://github.com/CuePointe/tonninyira/tree/tonninyira-enhancements"><img src="https://img.shields.io/badge/branch-tonninyira--enhancements-E23F25?style=for-the-badge&logo=git" alt="Enhancement branch"></a>
+  <img src="https://img.shields.io/badge/frontend-HTML%20%2B%20Vanilla%20JS-F5B400?style=for-the-badge&logo=javascript&logoColor=1C1410" alt="Frontend">
+  <img src="https://img.shields.io/badge/backend-Supabase-4C9A5B?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+  <img src="https://img.shields.io/badge/hosting-Cloudflare%20Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages">
+</p>
+
+<p>
+  <strong>Discover locally. Order simply. Work transparently.</strong><br>
+  Built for mobile-first use, low-bandwidth environments and the realities of neighbourhood commerce.
+</p>
+
+</div>
 
 ---
 
-## 📋 Table of Contents
+## What is Tonninyira?
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Product Categories](#products)
-- [Architecture](#architecture)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
+Tonninyira is a marketplace concept built around a simple idea: people should be able to discover useful local businesses without first creating an account, while the platform should require a verified account only when a real transaction or private customer action begins.
+
+The product keeps the public experience straightforward:
+
+**Browse → choose → basket → verify → pay → track.**
+
+The marketplace is intentionally split into two familiar shopping journeys:
+
+| Area | Purpose |
+| --- | --- |
+| **Eats** | Discover meals, snacks and ready-to-eat food from local stalls and food businesses. |
+| **Shop** | Discover groceries, raw foods, second-hand goods and other everyday products. |
+
+This is not a catalogue-only storefront. The platform is being developed as an operating system for local marketplace activity: customers, vendors, riders, orders, payments, reviews, support, settlements and marketplace analytics all connect to the same product model.
 
 ---
 
-## ✨ Features
+## Product principles
 
-### 🏪 Three Product Categories
+### 01 — Browse before you sign in
+Marketplace discovery is public. People can see stalls, products, prices, images and delivery information before creating an account.
 
-#### 1. **Local Markets** (1-3 km hyper-local)
-- Fresh produce, grains, oils
-- Budget-friendly portions
-- Prices: 2,500 - 7,000 UGX
-- Examples:
-  - Fresh Posho: 3,500 UGX
-  - Dry Beans: 6,000 UGX
-  - Cooking Oil: 5,000 UGX
+### 02 — One identity across the journey
+Once a customer verifies with Supabase Auth, that same authenticated session is reused for account access, Support, Orders, Wishlist and payment flows.
 
-#### 2. **🍗 Fast Foods** (Ready-to-eat meals) ⭐ NEW!
-- Affordable street/restaurant food
-- **Starting from 2,000 UGX**
-- Quick meals for busy schedules
-- Complete menu includes:
+### 03 — Low-friction mobile UX
+The interface is touch-first, visually familiar and designed to remain useful on ordinary Android devices and constrained connections.
 
-| Item | Price | Notes |
-|------|-------|-------|
-| 🌯 Rolex (Chapati Roll) | 2,000 UGX | Egg + veg wrapped |
-| 🍩 Mandazi Pack | 2,000 UGX | 6 sweet fried bread |
-| 🍞 Beans on Toast | 2,500 UGX | With toast |
-| 🥟 Samosa Pack | 2,500 UGX | 5 pieces |
-| 🥔 Ugali & Vegetables | 3,000 UGX | With sukuma wiki |
-| 🍲 Posho & Beans | 3,500 UGX | Ready-to-eat |
-| 🫓 Chapati & Curry | 3,500 UGX | 2 chapatis + sauce |
-| 🍚 Rice & Stew | 4,000 UGX | With meat/chicken |
-| 🍲 Chicken Soup | 4,500 UGX | With rice or posho |
-| 🍗 Fried Chicken | 5,000 UGX | 5-6 crispy pieces |
-| 🍢 Beef Skewers | 5,500 UGX | 3-4 grilled sticks |
-| 🍌 Matoke & Fish | 6,000 UGX | Steamed plantain |
+### 04 — Transparent marketplace economics
+Vendor and rider earnings are represented as gross earnings, Tonninyira's platform share and the partner's net amount. The current operating model uses a 5% platform cut for partner settlement calculations.
 
-#### 3. **Central Hubs** (Cross-city / Owino markets)
-- Second-hand essentials (mitumba)
-- Bulk items
-- Prices: 7,000 - 15,000 UGX
+### 05 — Data becomes product intelligence
+Every meaningful marketplace event can become a useful signal: search behaviour, product discovery, orders, cancellations, payment state, repeat purchasing, fulfilment speed, geography and partner productivity.
 
-### 💰 Smart Cost Transparency
-- Compares **Physical Trip Cost** vs **Tonninyira Cost**
-- Shows automatic **Net Savings** calculation
-- Dynamic savings based on delivery area
-- Considers real taxi fares
+---
 
-Example:
+## Core capabilities
+
+### 🛍 Customer experience
+
+- Public marketplace browsing
+- **Eats / Shop** category split
+- Vendor and stall discovery
+- Product search
+- Area entry and device location support
+- Basket and multi-vendor order grouping
+- Account creation and sign-in with phone OTP or email
+- Order history
+- Order status visibility
+- Reviews and ratings
+- Private customer Support
+- **Personal Wishlist** backed by the authenticated account
+- Saved stalls remain available across sessions
+
+### 🏪 Vendor experience
+
+- Vendor account verification
+- Vendor application and approval workflow
+- Stall registration
+- Product / menu presentation
+- Incoming order workflow
+- Gross earnings visibility
+- Tonninyira platform deduction visibility
+- Net earnings visibility
+- Settlement history
+- Mobile Money / bank payout request workflow
+
+### 🏍 Rider experience
+
+- Rider account verification
+- Rider application and approval workflow
+- Delivery job workflow
+- Delivery completion
+- Gross earnings visibility
+- Tonninyira platform deduction visibility
+- Net earnings visibility
+- Settlement history
+- Mobile Money / bank payout request workflow
+
+### 💳 Payments
+
+The payment architecture is prepared for Flutterwave and mobile-money checkout flows. Payment state is recorded separately from the order lifecycle so a payment attempt can be traced without corrupting the core order record.
+
+Actual money movement depends on configured external payment providers and their production credentials. Secrets are kept in Supabase Edge Function configuration rather than committed to this repository.
+
+### 📍 Delivery and location
+
+The marketplace captures customer location using a combination of typed area information and browser/device coordinates. The current fee engine uses distance-based delivery tiers; full road-route optimisation can be added as a later mapping layer.
+
+---
+
+## Architecture
+
+```text
+                         ┌──────────────────────────┐
+                         │      Tonninyira Web      │
+                         │  HTML + CSS + Vanilla JS │
+                         └────────────┬─────────────┘
+                                      │
+                       ┌──────────────┼──────────────┐
+                       │              │              │
+                       ▼              ▼              ▼
+                ┌────────────┐  ┌────────────┐  ┌────────────┐
+                │ Supabase   │  │ Flutterwave│  │ Cloudflare │
+                │ Auth       │  │ Payments   │  │ Pages/CDN  │
+                └─────┬──────┘  └────────────┘  └────────────┘
+                      │
+                      ▼
+                ┌──────────────────────────────────┐
+                │ PostgreSQL + RLS + Edge Functions│
+                │ profiles · vendors · riders      │
+                │ orders · wishlists · reviews     │
+                │ settlements · notifications      │
+                │ market/order/payment events      │
+                └──────────────────────────────────┘
 ```
-🍗 Fried Chicken (5,000 UGX) + Taxi Round-trip (5,000 UGX) = 10,000
-vs
-Tonninyira: Chicken (5,000) + Delivery (1,000) = 6,000
-💰 You Save: 4,000 UGX!
-```
 
-### 📊 Platform Revenue Transparency
-- Shows how Tonninyira earns (3% vendor + 15% delivery)
-- Visual profit margin breakdown
-- Lean model (3-8% margin) keeps prices low
-- Sustainable via high-volume model
+### Why this stack?
 
-### 🚚 Smart Delivery System
-- **Hyper-local delivery**: 1,000 - 1,500 UGX
-- **Cross-city delivery**: 3,000 - 5,000 UGX
-- **Express option**: +2,000 UGX (faster)
-- Real-time fee updates by area
+**Vanilla JavaScript** keeps the client lightweight and avoids framework overhead for a marketplace that needs to work well on everyday devices.
 
-### 👤 User Authentication
-- Phone number signup
-- Email authentication via Supabase
-- Secure OTP-based login
-- Order history tracking
+**Supabase** provides authentication, PostgreSQL, row-level security, realtime capabilities and Edge Functions in one backend platform.
 
-### 💳 Payment Methods
-- ✅ MTN MoMo (Uganda's #1 mobile money)
-- ✅ Airtel Money
-- ✅ Cash on Delivery
+**Cloudflare Pages** provides CDN-backed delivery for the static application and keeps the deployment model simple.
 
-### 📦 Order Management
-- Order ID generation
-- Order saved to Supabase database
-- Customer email notifications
-- Order status tracking
+**GitHub Actions** automates integration of the enhancement layer and protects the separation between the original application and ongoing product experiments.
 
 ---
 
-## 🚀 Quick Start
+## Authentication & authorization
 
-### Option 1: Deploy to Cloudflare Pages (Recommended)
+Tonninyira uses Supabase Auth as the source of truth for verified identity.
+
+```text
+Visitor
+  │
+  ├── Browse marketplace freely
+  │
+  ├── View stalls / products / prices
+  │
+  └── Start a private or transactional action
+             │
+             ▼
+       Verify account
+       Phone OTP / Email
+             │
+             ▼
+        Supabase Session
+             │
+       ┌─────┼─────────────┐
+       ▼     ▼             ▼
+    Customer Vendor       Rider
+       │     │             │
+       ▼     ▼             ▼
+   Orders  Application   Application
+   Wishlist Approval     Approval
+   Support  Earnings     Earnings
+```
+
+The important distinction is between **saved customer details** and a **real authenticated Supabase session**. A name/phone saved in browser storage is not treated as proof of authentication.
+
+Database access to private customer data is protected with row-level security policies tied to the authenticated user.
+
+---
+
+## Data model
+
+The marketplace is designed around a set of operational entities rather than one giant order table.
+
+```text
+profiles
+  ├── customer identity
+  ├── vendor/rider role
+  └── account state
+
+vendors ──────── products / stall presentation
+   │
+   └──────────── orders
+                  │
+                  ├── payment transactions
+                  ├── order events
+                  ├── rider fulfilment
+                  ├── notifications
+                  └── settlement records
+
+customers ────── wishlists
+customers ────── reviews
+customers ────── support conversations
+
+market_events ── discovery / behaviour analytics
+```
+
+The current backend also includes marketplace event, order event, notification and payment transaction tables to support deeper operational analytics.
+
+---
+
+## Wishlist model
+
+Wishlist is account-based, not just browser-based.
+
+A customer can:
+
+1. Tap the heart on a stall while browsing.
+2. Sign in once when asked.
+3. Save the stall to `public.wishlists`.
+4. Open **My wishlist** from the Account panel.
+5. Remove saved stalls at any time.
+6. Return later on the same account and see the same saved items.
+
+The table is protected by owner-only RLS policies so one customer cannot read or modify another customer's wishlist.
+
+---
+
+## Marketplace economics
+
+Tonninyira is being designed as a lean marketplace rather than a heavy inventory business.
+
+The product therefore tracks the money flow explicitly:
+
+```text
+Order value
+    │
+    ├── Vendor / Rider gross earnings
+    │
+    ├── Tonninyira platform share
+    │
+    └── Partner net amount
+```
+
+Current partner settlement calculations use a **5% Tonninyira platform cut**. Payout requests are represented in the wallet workflow; external provider integration is responsible for the final transfer of funds.
+
+---
+
+## Analytics direction
+
+Tonninyira is being built so product decisions can eventually be driven from marketplace evidence rather than intuition alone.
+
+Examples of questions the event model should answer:
+
+| Question | Useful signal |
+| --- | --- |
+| Where is demand growing? | Area + search + order geography |
+| Which stalls convert best? | Discovery → stall view → basket → order |
+| Which products drive repeat business? | Product orders + repeat-customer behaviour |
+| Where does fulfilment slow down? | Order and rider event timestamps |
+| Are partners economically viable? | Gross → platform cut → net → payout data |
+| Why do customers leave? | Abandoned baskets, cancellations and payment failures |
+| Which customers return? | Authenticated order history + cohort behaviour |
+
+This creates the foundation for future demand forecasting, stall recommendations, delivery-zone planning, partner productivity analysis and unit-economics modelling.
+
+---
+
+## Repository structure
+
+```text
+tonninyira/
+├── index.html                         # Main marketplace experience
+├── app.js                             # Core application logic
+├── enhancements.js                    # Product enhancement layer
+├── enhancements-fix.js               # Enhancement compatibility/fixes
+├── guest-access-flow.js               # Public browsing + account-gated actions
+├── account-session-ui.js              # Account state + sign-out UI
+├── session-compat.js                  # Shared Supabase client/session bridge
+├── support-session-fix.js             # Support session reliability guard
+├── wishlist-account.js                # Authenticated wishlist UI
+├── flutterwave-payments-v2.js         # Payment initiation client
+├── payment-return.html                # Payment return surface
+├── vendor-dashboard.html              # Vendor operations
+├── rider-dashboard.html               # Rider operations
+├── admin.html                         # Admin surface
+├── assets/
+│   └── tonninyira-mark.svg             # GitHub / project wordmark
+├── .github/workflows/
+│   ├── apply-enhancements.yml          # Enhancement integration
+│   └── integrate-payments-account-pwa.yml
+└── README.md                           # Project documentation
+```
+
+> The repository contains both the original application and a deliberately layered enhancement system. Legacy experimental files may remain in the branch for reference even when their scripts are no longer injected into the live page.
+
+---
+
+## Local development
+
+Tonninyira is a static web application, so the fastest local setup is a simple HTTP server.
 
 ```bash
-# 1. Push to GitHub
-git push origin main
-
-# 2. Create Cloudflare Pages project
-# Visit: https://pages.cloudflare.com/
-# Connect GitHub repository
-# Add environment variables
-
-# Your app will be live at: https://tonninyira.pages.dev ✨
-```
-
-### Option 2: Local Testing
-
-```bash
-# Start a local server
+git clone https://github.com/CuePointe/tonninyira.git
+cd tonninyira
 python -m http.server 8000
+```
 
-# Open browser
+Open:
+
+```text
 http://localhost:8000
 ```
 
-### Option 3: GitHub Pages
+Because authentication, database access and payment flows depend on external services, local testing still requires the appropriate Supabase project configuration and provider setup.
 
-```bash
-# Push to GitHub
-git push origin main
+---
 
-# Your app will be at: https://USERNAME.github.io/tonninyira/
+## Deployment model
+
+The intended deployment path is:
+
+```text
+Git push
+   │
+   ▼
+GitHub Actions
+   │
+   ├── Integrate enhancement layer
+   └── Keep generated entry-point changes on the enhancement branch
+   │
+   ▼
+Cloudflare Pages
+   │
+   ▼
+Global static delivery
 ```
 
----
-
-## <a name="products"></a>🛍️ Complete Product Catalog
-
-### Local Markets (🏪)
-
-**Staple Foods:**
-- Fresh Posho (1kg) - 3,500 UGX
-- Dry Beans (2kg) - 6,000 UGX
-- Maize Flour (2kg) - 4,500 UGX
-
-**Produce & Essentials:**
-- Fresh Tomatoes (heap) - 4,000 UGX
-- Onions Bunch (5-6) - 2,500 UGX
-- Cooking Oil (1L) - 5,000 UGX
-- Sugar (500g) - 3,000 UGX
-- Eggs (15 pieces) - 7,000 UGX
-
-### Fast Foods (🍗) ⭐ NEW CATEGORY!
-
-**Ultra-Affordable (2,000-2,500):**
-- Rolex - 2,000 UGX
-- Mandazi Pack - 2,000 UGX
-- Beans on Toast - 2,500 UGX
-- Samosa Pack - 2,500 UGX
-
-**Budget Meals (3,000-3,500):**
-- Ugali & Vegetables - 3,000 UGX
-- Posho & Beans - 3,500 UGX
-- Chapati & Curry - 3,500 UGX
-
-**Hearty Meals (4,000-6,000):**
-- Rice & Stew - 4,000 UGX
-- Chicken Soup - 4,500 UGX
-- Fried Chicken (5-6 pcs) - 5,000 UGX
-- Beef Skewers (3-4) - 5,500 UGX
-- Matoke & Fish - 6,000 UGX
-
-### Central Hubs (🏬)
-
-**Clothing (Mitumba):**
-- Grade-A Jacket - 8,000 UGX
-- Denim Jeans - 7,500 UGX
-- T-Shirt Bundle (3) - 9,000 UGX
-- Sweater/Pullover - 7,000 UGX
-- Sports Shoes - 10,000 UGX
-- Casual Shoes - 8,500 UGX
-
-**Home Items:**
-- Bed Sheet Set - 12,000 UGX
-- Kitchen Utensils Bundle - 15,000 UGX
+The project currently maintains the dedicated `tonninyira-enhancements` branch for this development stream. The original `main` branch is kept separate.
 
 ---
 
-## <a name="architecture"></a>🏗️ Technical Architecture
+## Security notes
 
-### Stack
-
-```
-Frontend: HTML5 + Vanilla JavaScript + Tailwind CSS
-Backend: Supabase (PostgreSQL + Auth + Realtime)
-Hosting: Cloudflare Pages (free, global CDN)
-Version Control: GitHub
-```
-
-### File Structure
-
-```
-tonninyira/
-├── index.html           # Main UI (no framework bloat!)
-├── app.js               # State management + Supabase
-├── style.css            # Animations & mobile styling
-├── README.md            # This file
-├── SETUP_GUIDE.md       # Deployment instructions
-├── .env.example         # Environment template
-├── .gitignore           # Git ignore rules
-└── .github/
-    └── workflows/
-        └── deploy.yml   # GitHub Actions → Cloudflare
-```
-
-### Performance
-
-- **Bundle Size**: ~45KB total (HTML + CSS + JS)
-- **Load Time**: <1 second on 3G
-- **Mobile Optimization**: Touch-first, low bandwidth
-- **Zero Dependencies**: No npm required
-- **Accessibility**: WCAG 2.1 compliant
-
-### Browser Support
-
-✅ Chrome/Edge (Android & Desktop)
-✅ Firefox
-✅ Safari (iOS & Desktop)
-✅ Opera
-✅ UC Browser (budget Android phones)
-✅ All ES6+ supporting browsers
+- Never commit Supabase service-role keys.
+- Never commit Flutterwave secret keys or webhook hashes.
+- Keep payment secrets in Supabase Edge Function secrets.
+- Treat browser-stored customer details as convenience data, not authentication.
+- Keep private customer tables behind RLS.
+- Validate server-side payment state before treating an order as paid.
+- Do not trust client-supplied platform fees or settlement totals without server-side controls.
 
 ---
 
-## <a name="deployment"></a>🌐 Deployment Options
+## Current focus
 
-### 1. Cloudflare Pages (Recommended) ⭐
+The current product work is concentrated on making the core marketplace journey reliable before expanding the surface area:
 
-**Pros:**
-- Free tier (unlimited bandwidth)
-- Global CDN (fast everywhere)
-- Auto-deploy from GitHub
-- Custom domain support
-- Auto HTTPS
-
-**Steps:**
-```bash
-git push origin main
-# → Auto-deploys to https://tonninyira.pages.dev
-```
-
-### 2. GitHub Pages
-
-**Pros:**
-- Free with GitHub
-- Easy setup
-- Good for personal projects
-
-**URL:** `https://USERNAME.github.io/tonninyira/`
-
-### 3. Netlify
-
-**Pros:**
-- Free tier
-- Drag & drop deploy
-- Serverless functions support
-
-**Steps:**
-```bash
-# Drag folder to netlify.com
-# → Auto-deployed in 30 seconds
-```
+- Unified account/session behaviour
+- Customer wishlist persistence
+- Customer Support without repeated sign-in prompts
+- Mobile-money payment flow
+- Vendor and rider earnings visibility
+- Better gallery and page performance
+- Marketplace analytics and operational event tracking
 
 ---
 
-## <a name="troubleshooting"></a>🔧 Troubleshooting
+## Roadmap
 
-### ❌ "I only see README.md on GitHub"
+### Near term
 
-**Solution**: Ensure `index.html` is in the **root** directory, not a subfolder.
+- End-to-end Flutterwave mobile-money verification
+- Cleaner payment return / retry handling
+- Stronger product-level wishlist support
+- Better customer order tracking
+- Vendor/rider notification centre
+- Improved market-image optimisation
 
-```bash
-# Check file location
-ls -la | grep index.html
-# Should show: index.html (in root, not in subfolder)
-```
+### Next layer
 
-### ❌ "App works locally but not on Cloudflare"
+- Map-based location selection
+- Road-aware delivery routing
+- Demand heatmaps
+- Partner performance dashboards
+- Repeat-purchase recommendations
+- Customer segmentation
+- Operational alerts and anomaly detection
 
-**Solution**: Check environment variables
+### Long term
 
-```bash
-# Verify .env file exists locally
-cat .env
-# Should show SUPABASE_URL and SUPABASE_ANON_KEY
-
-# In Cloudflare: Settings → Environment Variables → Staging
-# Add same variables
-```
-
-### ❌ "Supabase connection fails"
-
-**Solution**: Verify API credentials
-
-```javascript
-// Open browser console (F12)
-// Check for errors like:
-// "Failed to fetch from Supabase"
-// → Check SUPABASE_URL format (must end with .co)
-// → Check SUPABASE_ANON_KEY is correct (>200 chars)
-```
-
-### ❌ "Orders not saving"
-
-**Solution**: Check Supabase tables exist
-
-```bash
-# Go to Supabase Dashboard → SQL Editor
-# Run: SELECT * FROM orders;
-# If table doesn't exist, follow SETUP_GUIDE.md
-```
+Tonninyira can evolve from a marketplace frontend into a data-informed local commerce network where the platform learns which products, stalls, neighbourhoods and delivery patterns create the healthiest marketplace outcomes.
 
 ---
 
-## 📚 Documentation
+## Project status
 
-| Document | Purpose |
-|----------|---------|
-| **README.md** | This file - features & overview |
-| **SETUP_GUIDE.md** | Step-by-step deployment instructions |
-| **app.js** | Code with comments explaining Supabase integration |
-| **.env.example** | Environment variables template |
+**Tonninyira is an actively developed marketplace project.**
+
+The codebase is being built incrementally, with production-minded authentication, database security, payments, partner operations and analytics introduced as distinct layers rather than hidden inside one large application file.
 
 ---
 
-## 🎯 Why Tonninyira?
+<div align="center">
 
-### Problem:
-Low-income earners in Kampala waste time & money:
-- Round-trip taxi to market: 5,000+ UGX
-- Time away from work/family: 1-2 hours
-- Limited after-hours access
-- No reliable fast food options
+### Built for local commerce. Designed to scale with evidence.
 
-### Solution:
-**Tonninyira** delivers at your door:
-- ✅ Saves taxi fare
-- ✅ Saves time
-- ✅ 24/7 fast food access
-- ✅ Transparent pricing
-- ✅ Lean model (no markup)
+**Tonninyira 🇺🇬**
 
-### Impact:
-- 10,000+ orders/month
-- UGX 50M+ customer savings annually
-- 500+ delivery jobs created
-- 200+ vendors supported
-
----
-
-## 🔐 Security
-
-- ✅ Supabase Row-Level Security (RLS)
-- ✅ OTP-based authentication
-- ✅ No passwords stored
-- ✅ HTTPS-only
-- ✅ GDPR-compliant
-
----
-
-## 📞 Support & Contact
-
-- 📧 **Email**: support@tonninyira.ug
-- 💬 **Slack**: [@tonninyira](https://slack.com)
-- 🐛 **Issues**: GitHub Issues
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is open-source under the MIT License.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ for Kampala's budget-conscious users
-- Inspired by real market-goers struggling with taxi costs
-- Powered by free tools: Supabase, Cloudflare, GitHub
-
----
-
-## 🎉 Quick Links
-
-- 🌐 **Live App**: https://tonninyira.pages.dev
-- 📝 **Setup Guide**: See SETUP_GUIDE.md
-- 💻 **GitHub**: https://github.com/USERNAME/tonninyira
-- 🔐 **Supabase**: https://supabase.com
-- ☁️ **Cloudflare**: https://pages.cloudflare.com
-
----
-
-## ✅ Feature Checklist
-
-- [x] Three product categories (Markets, Fast Food, Central Hubs)
-- [x] Cost transparency & savings calculator
-- [x] Smart delivery fee system
-- [x] User authentication (Supabase)
-- [x] Order management & history
-- [x] Revenue transparency modal
-- [x] Multiple payment methods
-- [x] Mobile-first responsive design
-- [x] GitHub + Cloudflare deployment
-- [x] Fast Foods from 2,000 UGX
-- [ ] Real payment gateway (next phase)
-- [ ] Real-time order tracking (next phase)
-- [ ] Vendor dashboard (next phase)
-
----
-
-## 🚀 Roadmap
-
-### Phase 2 (Q4 2026)
-- ✅ Real payment integration (MTN API)
-- ✅ Order tracking with GPS
-- ✅ Customer reviews & ratings
-
-### Phase 3 (Q1 2027)
-- ✅ Vendor management dashboard
-- ✅ Analytics & business intelligence
-- ✅ Multi-language support (Luganda)
-
-### Phase 4 (Q2 2027)
-- ✅ Desktop admin panel
-- ✅ SMS order notifications
-- ✅ Scheduled delivery orders
-
----
-
-**Tonninyira: Making affordable living accessible. One delivery at a time. 🚴‍♂️**
-
-Made with 💚 🧡 for Uganda 🇺🇬
+</div>
