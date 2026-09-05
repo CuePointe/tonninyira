@@ -1,7 +1,10 @@
 /* Tonninyira account/session UI: visible account state + reliable sign-out. */
 (function(){
   'use strict';
-  const c=()=>window.supabaseClient;
+  const c=()=>{
+    try{if(typeof supabaseClient!=='undefined'&&supabaseClient)return supabaseClient}catch(_){}
+    return window.supabaseClient||window.tnSessionClient||null;
+  };
   const esc=v=>String(v??'').replace(/[&<>\"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[x]));
   function style(){
     if(document.getElementById('tn-account-ui-style'))return;
@@ -14,25 +17,34 @@
       .tn-acct-danger{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,100,100,.3);background:rgba(255,80,80,.08);color:#ffb0b0;font-weight:900;cursor:pointer;margin-top:16px}
     `;document.head.appendChild(s);
   }
-  async function session(){try{return (await c()?.auth?.getSession())?.data?.session||null}catch(_){return null}}
+  async function session(){
+    const client=c();if(!client?.auth?.getSession)return null;
+    try{
+      let r=await client.auth.getSession();
+      if(r?.data?.session)return r.data.session;
+      if(client.auth.refreshSession){r=await client.auth.refreshSession();if(r?.data?.session)return r.data.session;}
+      return null;
+    }catch(_){return null}
+  }
   async function profile(userId){try{return (await c().from('profiles').select('display_name,role,phone').eq('id',userId).maybeSingle()).data||null}catch(_){return null}}
   function close(){document.getElementById('tn-account-panel')?.remove()}
   async function open(){
     style();const s=await session();
     const p=s?await profile(s.user.id):null;
     const el=document.createElement('div');el.id='tn-account-panel';el.className='tn-acct-panel';document.body.appendChild(el);
-    if(!s){el.innerHTML=`<div class="tn-acct-sheet"><div style="display:flex;justify-content:space-between"><div><div style="font-size:.66rem;color:var(--gold);font-weight:900;letter-spacing:1.5px">TONNINYIRA</div><h2 class="display" style="font-size:1.3rem;margin:5px 0">You're not signed in</h2></div><button class="close-x" id="tnAcctClose">×</button></div><p style="color:var(--muted);font-size:.82rem;line-height:1.5">Browse freely. Sign in when you want to buy, sell or deliver.</p><button class="btn-primary" id="tnAcctSignIn" style="width:100%">Sign in / Create account</button></div>`;el.querySelector('#tnAcctClose').onclick=close;el.querySelector('#tnAcctSignIn').onclick=()=>{close();if(typeof window.authStart==='function')window.authStart();};return;}
+    if(!s){el.innerHTML=`<div class="tn-acct-sheet"><div style="display:flex;justify-content:space-between"><div><div style="font-size:.66rem;color:var(--gold);font-weight:900;letter-spacing:1.5px">TONNINYIRA</div><h2 class="display" style="font-size:1.3rem;margin:5px 0">You're not signed in</h2></div><button class="close-x" id="tnAcctClose">×</button></div><p style="color:var(--muted);font-size:.82rem;line-height:1.5">Browse freely. Sign in when you want to buy, sell, deliver or save a wishlist.</p><button class="btn-primary" id="tnAcctSignIn" style="width:100%">Sign in / Create account</button></div>`;el.querySelector('#tnAcctClose').onclick=close;el.querySelector('#tnAcctSignIn').onclick=()=>{close();if(typeof window.authStart==='function')window.authStart();};return;}
     const identifier=s.user.phone||s.user.email||'Verified account';
     el.innerHTML=`<div class="tn-acct-sheet"><div style="display:flex;justify-content:space-between"><div><div style="font-size:.66rem;color:var(--gold);font-weight:900;letter-spacing:1.5px">MY TONNINYIRA ACCOUNT</div><h2 class="display" style="font-size:1.3rem;margin:5px 0">Account details</h2></div><button class="close-x" id="tnAcctClose">×</button></div>
       <div class="tn-acct-line"><span>Signed in as</span><span class="tn-acct-value">${esc(identifier)}</span></div>
       <div class="tn-acct-line"><span>Name</span><span class="tn-acct-value">${esc(p?.display_name||'Not set')}</span></div>
       <div class="tn-acct-line"><span>Phone</span><span class="tn-acct-value">${esc(p?.phone||s.user.phone||'Not set')}</span></div>
       <div class="tn-acct-line"><span>Role</span><span class="tn-acct-value">${esc(p?.role||'customer')}</span></div>
-      <div style="display:grid;gap:9px;margin-top:16px"><button class="btn-secondary" id="tnAcctOrders">My orders</button><button class="btn-secondary" id="tnAcctProfile">Open profile</button></div>
+      <div style="display:grid;gap:9px;margin-top:16px"><button class="btn-secondary" id="tnAcctWishlist">My wishlist</button><button class="btn-secondary" id="tnAcctOrders">My orders</button><button class="btn-secondary" id="tnAcctProfile">Open profile</button></div>
       <button class="tn-acct-danger" id="tnAcctSignOut">Sign out of Tonninyira</button>
       <div id="tnAcctMsg" style="min-height:20px;color:var(--muted);font-size:.76rem;margin-top:8px"></div>
     </div>`;
     el.querySelector('#tnAcctClose').onclick=close;
+    el.querySelector('#tnAcctWishlist').onclick=()=>{close();if(typeof window.tnOpenWishlist==='function')window.tnOpenWishlist()};
     el.querySelector('#tnAcctOrders').onclick=()=>{close();if(typeof window.goView==='function')window.goView('orders')};
     el.querySelector('#tnAcctProfile').onclick=()=>{close();if(typeof window.goView==='function')window.goView('profile')};
     el.querySelector('#tnAcctSignOut').onclick=async()=>{
