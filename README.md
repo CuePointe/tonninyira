@@ -6,7 +6,7 @@
 
 # Tonninyira
 
-### A local-first marketplace for discovering, ordering from and working with trusted neighbourhood businesses in Uganda.
+### A local-first marketplace for discovering, ordering from, and working with trusted neighbourhood businesses in Uganda.
 
 <p>
   <a href="https://github.com/CuePointe/tonninyira/tree/tonninyira-enhancements"><img src="https://img.shields.io/badge/branch-tonninyira--enhancements-E23F25?style=for-the-badge&logo=git" alt="Enhancement branch"></a>
