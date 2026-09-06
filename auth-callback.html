@@ -4,16 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tonninyira — Signing you in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--ink:#1C1410;--card:#2A1F19;--red:#E23F25;--gold:#F5B400;--sand:#F3E8D8;--muted:#9C897A}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--ink);color:var(--sand);font-family:'Work Sans',Arial,sans-serif;display:grid;place-items:center;padding:24px;text-align:center;-webkit-font-smoothing:antialiased}.card{width:min(420px,100%);background:var(--card);border-radius:18px;padding:28px;border:1px solid rgba(243,232,216,.1)}.mark{font-size:10px;letter-spacing:1.6px;color:var(--gold);font-weight:900}h1{font-size:24px;margin:8px 0;font-weight:800}p{color:var(--muted);font-size:13px;line-height:1.5}.err{color:#ffc2b8}.spin{width:30px;height:30px;border:3px solid rgba(243,232,216,.18);border-top-color:var(--gold);border-radius:50%;margin:18px auto;animation:r .8s linear infinite}@keyframes r{to{transform:rotate(360deg)}}
+:root{--ink:#1C1410;--card:#2A1F19;--gold:#F5B400;--sand:#F3E8D8;--muted:#9C897A}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--ink);color:var(--sand);font-family:'Work Sans',Arial,sans-serif;display:grid;place-items:center;padding:24px;text-align:center;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.card{width:min(420px,100%);background:var(--card);border-radius:18px;padding:28px;border:1px solid rgba(243,232,216,.1)}.mark{font-size:10px;letter-spacing:1.6px;color:var(--gold);font-weight:900}h1{font-size:24px;margin:8px 0;font-weight:800;letter-spacing:-.02em}p{color:var(--muted);font-size:13px;line-height:1.5}.err{color:#ffc2b8}.spin{width:30px;height:30px;border:3px solid rgba(243,232,216,.18);border-top-color:var(--gold);border-radius:50%;margin:18px auto;animation:r .8s linear infinite}@keyframes r{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body><main class="card"><div class="mark">TONNINYIRA</div><h1 id="title">Signing you in…</h1><div class="spin" id="spin"></div><p id="msg">Please wait while we securely finish your account sign-in.</p></main>
 <script>
 const SUPABASE_URL='https://alxzmjgepftohwpqibmn.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbHh6bWp...';
+const SUPABASE_PUBLIC_KEY='sb_publishable_vLr2S8qLRHN5gVv9IITVPQ_CTXc4aCv';
 const APP_URL='https://cuepointe.github.io/tonninyira/';
-</script>
-</body></html>
+(async()=>{
+  const title=document.getElementById('title'),msg=document.getElementById('msg'),spin=document.getElementById('spin');
+  try{
+    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY,{auth:{flowType:'implicit',persistSession:true,detectSessionInUrl:true}});
+    const {data:{session},error}=await client.auth.getSession();
+    if(error)throw error;
+    if(!session)throw new Error('The sign-in link is missing or has expired.');
+    title.textContent='Account verified';
+    msg.textContent='Taking you back to Tonninyira…';
+    spin.style.display='none';
+    setTimeout(()=>location.replace(APP_URL+'index.html?auth=complete'),350);
+  }catch(e){
+    title.textContent='Sign-in link could not be completed';
+    msg.className='err';
+    msg.textContent=e?.message||'Please request a new sign-in link and try again.';
+    spin.style.display='none';
+  }
+})();
+</script></body></html>
