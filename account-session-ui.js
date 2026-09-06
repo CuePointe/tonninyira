@@ -9,12 +9,13 @@
   function style(){
     if(document.getElementById('tn-account-ui-style'))return;
     const s=document.createElement('style');s.id='tn-account-ui-style';s.textContent=`
-      .tn-acct-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(245,180,0,.42);background:rgba(245,180,0,.09);color:var(--gold);border-radius:12px;padding:9px 12px;font:inherit;font-size:.76rem;font-weight:900;cursor:pointer}
-      .tn-acct-panel{position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.72);display:grid;place-items:end center;padding:0}
+      .tn-acct-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(245,180,0,.42);background:rgba(245,180,0,.09);color:var(--gold);border-radius:12px;padding:9px 12px;font-family:'Work Sans',sans-serif;font-size:.76rem;font-weight:800;cursor:pointer;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+      .tn-acct-panel{position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.72);display:grid;place-items:end center;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
       .tn-acct-sheet{width:min(520px,100%);max-height:88vh;overflow:auto;background:var(--ink);color:var(--sand);border-radius:22px 22px 0 0;padding:20px 16px 28px;border:1px solid rgba(255,255,255,.08)}
+      .tn-acct-sheet h2{font-family:'Work Sans',sans-serif!important;font-weight:800;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
       .tn-acct-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)}
-      .tn-acct-value{font-weight:900;text-align:right;word-break:break-word}
-      .tn-acct-danger{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,100,100,.3);background:rgba(255,80,80,.08);color:#ffb0b0;font-weight:900;cursor:pointer;margin-top:16px}
+      .tn-acct-value{font-weight:800;text-align:right;word-break:break-word}
+      .tn-acct-danger{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,100,100,.3);background:rgba(255,80,80,.08);color:#ffb0b0;font-weight:800;cursor:pointer;margin-top:16px}
     `;document.head.appendChild(s);
   }
   async function session(){
@@ -35,7 +36,7 @@
     const admin=p?.role==='admin'||p?.role==='staff';
     const el=document.createElement('div');el.id='tn-account-panel';el.className='tn-acct-panel';document.body.appendChild(el);
     const identifier=s.user.phone||s.user.email||'Verified account';
-    el.innerHTML=`<div class="tn-acct-sheet"><div style="display:flex;justify-content:space-between"><div><div style="font-size:.66rem;color:var(--gold);font-weight:900;letter-spacing:1.5px">MY TONNINYIRA ACCOUNT</div><h2 class="display" style="font-size:1.3rem;margin:5px 0">Account</h2></div><button class="close-x" id="tnAcctClose">×</button></div>
+    el.innerHTML=`<div class="tn-acct-sheet"><div style="display:flex;justify-content:space-between"><div><div style="font-size:.66rem;color:var(--gold);font-weight:900;letter-spacing:1.5px">MY TONNINYIRA ACCOUNT</div><h2 style="font-size:1.3rem;margin:5px 0">Account</h2></div><button class="close-x" id="tnAcctClose">×</button></div>
       <div class="tn-acct-line"><span>Signed in as</span><span class="tn-acct-value">${esc(identifier)}</span></div>
       <div class="tn-acct-line"><span>Name</span><span class="tn-acct-value">${esc(p?.display_name||'Not set')}</span></div>
       <div class="tn-acct-line"><span>Phone</span><span class="tn-acct-value">${esc(p?.phone||s.user.phone||'Not set')}</span></div>
