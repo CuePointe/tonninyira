@@ -46,7 +46,7 @@
       <div class="tn-acct-line"><span>Phone</span><span class="tn-acct-value">${esc(p?.phone||s.user.phone||'Not set')}</span></div>
       <div class="tn-acct-line"><span>Role</span><span class="tn-acct-value">${esc(p?.role||'customer')}</span></div>
       <div style="display:grid;gap:9px;margin-top:16px"><button class="btn-secondary" id="tnAcctWishlist">My wishlist</button><button class="btn-secondary" id="tnAcctOrders">My orders</button><button class="btn-secondary" id="tnAcctProfile">Open profile</button></div>
-      ${admin?`<button class="tn-acct-admin" id="tnAcctAdmin">⚙ Admin Control Tower</button>`:''}
+      ${admin?`<button class="tn-acct-admin" id="tnAcctAdmin">⚙ Admin Control Tower</button><button class="tn-acct-admin" id="tnAcctGuide">▣ Admin User Guide</button>`:''}
       <button class="tn-acct-danger" id="tnAcctSignOut">Sign out of Tonninyira</button>
       <div id="tnAcctMsg" style="min-height:20px;color:var(--muted);font-size:.76rem;margin-top:8px"></div>
     </div>`;
@@ -55,6 +55,7 @@
     el.querySelector('#tnAcctOrders').onclick=()=>{close();if(typeof window.goView==='function')window.goView('orders')};
     el.querySelector('#tnAcctProfile').onclick=()=>{close();if(typeof window.goView==='function')window.goView('profile')};
     el.querySelector('#tnAcctAdmin')?.addEventListener('click',()=>{close();location.href='./admin-control-tower.html'});
+    el.querySelector('#tnAcctGuide')?.addEventListener('click',()=>{close();location.href='./admin-user-guide.html'});
     el.querySelector('#tnAcctSignOut').onclick=async()=>{
       const b=el.querySelector('#tnAcctSignOut');const msg=el.querySelector('#tnAcctMsg');b.disabled=true;b.textContent='Signing out…';
       const result=await c().auth.signOut({scope:'local'});
