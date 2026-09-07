@@ -41,6 +41,12 @@
       const b=document.createElement('button');b.id='tn-admin-guide-link';b.className='nav';b.dataset.tnGuideLink='1';b.textContent='Staff user guide';b.onclick=()=>location.href=GUIDE_URL;nav.appendChild(b);
     }
   }
+  function applyPreferredView(){
+    const target=sessionStorage.getItem('tnAdminPreferredView');
+    if(!target)return;
+    const b=document.querySelector('#nav button[data-view="'+target.replace(/[^a-z]/g,'')+'"]');
+    if(b){sessionStorage.removeItem('tnAdminPreferredView');b.click();}
+  }
   async function loadGuide(){
     const q=await getClient().rpc('admin_get_guide',{p_slug:'operations'});
     if(q.error)throw q.error;
@@ -59,13 +65,10 @@
     if(s.ok){
       who.textContent=(s.display_name||s.user.email||'Admin')+' · '+(s.role||'admin');
       addGuideLink();
-      const b=document.getElementById('signout');
-      if(b){b.disabled=false;b.style.pointerEvents='auto';b.onclick=logout;}
-    }else{
-      who.textContent='Admin access could not be verified';
-      const b=document.getElementById('signout');
-      if(b){b.disabled=false;b.style.pointerEvents='auto';b.onclick=logout;}
-    }
+    }else who.textContent='Admin access could not be verified';
+    const b=document.getElementById('signout');
+    if(b){b.disabled=false;b.style.pointerEvents='auto';b.onclick=logout;}
+    setTimeout(applyPreferredView,150);
   }
   async function repairGuide(){
     const access=document.getElementById('access');
