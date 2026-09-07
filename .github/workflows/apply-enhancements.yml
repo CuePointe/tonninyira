@@ -1,0 +1,100 @@
+name: Apply Tonninyira enhancement layer
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-enhancements:
+    if: ${{ !contains(github.event.head_commit.message, '[skip enhancement injector]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout enhancement branch
+        uses: actions/checkout@v4
+        with:
+          ref: tonninyira-enhancements
+          fetch-depth: 0
+
+      - name: Inject public and admin reliability layer
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          marker='</body>'
+
+          index=Path('index.html')
+          html=index.read_text(encoding='utf-8')
+          for tag in [
+              '<script src="account-location-enhancements.js"></script>',
+              '<script src="account-role-location-enhancements.js"></script>',
+              '<script src="account-first-flow-fix.js"></script>',
+              '<script src="auth-gate.js"></script>',
+          ]:
+              html=html.replace(tag+'\n','').replace(tag,'')
+          tags=[
+              '<script src="enhancements.js"></script>',
+              '<script src="enhancements-fix.js"></script>',
+              '<script src="profile-copy-enhancements.js"></script>',
+              '<script src="guest-access-flow.js"></script>',
+              '<script src="admin-entrypoint.js"></script>',
+              '<script src="session-compat.js"></script>',
+              '<script src="support-session-fix.js"></script>',
+              '<script src="wishlist-account.js"></script>',
+              '<script src="partner-wallet-payouts.js"></script>',
+              '<script src="signout-visible.js"></script>',
+              '<script src="market-gallery-fix.js"></script>',
+              '<script src="performance-optimizations.js"></script>',
+          ]
+          for tag in tags:
+              if tag not in html:
+                  if marker not in html: raise SystemExit('Could not find </body> in index.html')
+                  html=html.replace(marker,tag+'\n'+marker,1)
+          index.write_text(html,encoding='utf-8')
+
+          for page in ('vendor-dashboard.html','rider-dashboard.html'):
+              p=Path(page)
+              if not p.exists(): continue
+              h=p.read_text(encoding='utf-8')
+              for tag in ('<script src="partner-dashboard-auth-earnings.js"></script>','<script src="partner-wallet-payouts.js"></script>','<script src="signout-visible.js"></script>'):
+                  if tag not in h and marker in h: h=h.replace(marker,tag+'\n'+marker,1)
+              p.write_text(h,encoding='utf-8')
+
+          # Admin pages: load the shared session layer before page JavaScript,
+          # and use its server-side authorization check inside the Control Tower.
+          admin=Path('admin-control-tower.html')
+          if admin.exists():
+              h=admin.read_text(encoding='utf-8')
+              tag='<script src="admin-session-fix.js"></script>'
+              if tag not in h: h=h.replace('</head>',tag+'\n</head>',1)
+              pattern=r"async function auth\(\)\{.*?\}\nasync function rows"
+              replacement="async function auth(){const s=await window.tnAdminState();if(!s.ok)throw Error(s.error||'Administrator access could not be verified');document.getElementById('who').textContent=`${s.display_name||s.user.email||'Admin'} · ${s.role}`}\nasync function rows"
+              h,n=re.subn(pattern,replacement,h,count=1,flags=re.S)
+              if n!=1: raise SystemExit('Could not patch Control Tower auth function')
+              h=h.replace('<script src="admin-guide-entry.js"></script>','').replace('<script src="admin-signout-fix.js"></script>','')
+              admin.write_text(h,encoding='utf-8')
+
+          guide=Path('admin-user-guide.html')
+          if guide.exists():
+              h=guide.read_text(encoding='utf-8')
+              tag='<script src="admin-session-fix.js"></script>'
+              if tag not in h: h=h.replace('</head>',tag+'\n</head>',1)
+              guide.write_text(h,encoding='utf-8')
+
+          print('Unified admin session, one guide link, reliable logout, and production auth layer applied')
+
+      - name: Commit integration
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html vendor-dashboard.html rider-dashboard.html admin-control-tower.html admin-user-guide.html
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Unify admin authentication and remove duplicate controls [skip enhancement injector]'
+          git push origin HEAD:tonninyira-enhancements
