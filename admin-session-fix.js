@@ -44,7 +44,7 @@
   async function loadGuide(){
     const q=await getClient().rpc('admin_get_guide',{p_slug:'operations'});
     if(q.error)throw q.error;
-    const g=q.data;
+    const g=Array.isArray(q.data)?q.data[0]:q.data;
     if(!g)throw new Error('Private guide content is not configured');
     const content=document.getElementById('content');
     if(!content)return;
