@@ -69,28 +69,30 @@ jobs:
                       h = h.replace(marker, f'{tag}\n{marker}', 1)
               p.write_text(h, encoding='utf-8')
 
-          # Keep the protected admin workspace usable after direct navigation.
-          admin = Path('admin-control-tower.html')
-          if admin.exists():
-              h = admin.read_text(encoding='utf-8')
-              for tag in ('<script src="admin-guide-entry.js"></script>', '<script src="admin-signout-fix.js"></script>'):
-                  if tag not in h:
-                      if marker not in h:
-                          raise SystemExit('Could not find </body> in admin-control-tower.html')
-                      h = h.replace(marker, f'{tag}\n{marker}', 1)
-              admin.write_text(h, encoding='utf-8')
+          # Keep the protected admin workspace and guide on the same reliable session layer.
+          for page in ('admin-control-tower.html', 'admin-user-guide.html'):
+              p = Path(page)
+              if not p.exists():
+                  continue
+              h = p.read_text(encoding='utf-8')
+              tag = '<script src="admin-session-fix.js"></script>'
+              if tag not in h:
+                  if marker not in h:
+                      raise SystemExit(f'Could not find </body> in {page}')
+                  h = h.replace(marker, f'{tag}\n{marker}', 1)
+              p.write_text(h, encoding='utf-8')
 
-          print('Enhanced session, public browsing, account transactions, admin entry, admin guide/logout, wishlist, wallet/payouts, sign-out and gallery present')
+          print('Enhanced session, public browsing, account transactions, admin entry, admin guide/session recovery, wishlist, wallet/payouts, sign-out and gallery present')
 
       - name: Commit integration
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html vendor-dashboard.html rider-dashboard.html admin-control-tower.html
+          git add index.html vendor-dashboard.html rider-dashboard.html admin-control-tower.html admin-user-guide.html
           if git diff --cached --quiet; then
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Integrate admin guide and reliable admin logout [skip enhancement injector]'
+          git commit -m 'Integrate reliable admin session, guide access and logout [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
