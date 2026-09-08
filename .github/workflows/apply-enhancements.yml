@@ -69,20 +69,22 @@ jobs:
                       h = h.replace(marker, f'{tag}\n{marker}', 1)
               p.write_text(h, encoding='utf-8')
 
-          # Keep the protected admin workspace and guide on the same reliable session layer.
+          # Protected admin pages use only the shared session layer.
+          # They do not receive UI, navigation, or authorization logic from this injector.
           for page in ('admin-control-tower.html', 'admin-user-guide.html'):
               p = Path(page)
               if not p.exists():
                   continue
               h = p.read_text(encoding='utf-8')
               tag = '<script src="admin-session-fix.js"></script>'
-              if tag not in h:
-                  if marker not in h:
-                      raise SystemExit(f'Could not find </body> in {page}')
-                  h = h.replace(marker, f'{tag}\n{marker}', 1)
+              for needle in ('<script src="admin-session-fix.js"></script>\n', tag):
+                  h = h.replace(needle, '')
+              if '</head>' not in h:
+                  raise SystemExit(f'Could not find </head> in {page}')
+              h = h.replace('</head>', tag + '\n</head>', 1)
               p.write_text(h, encoding='utf-8')
 
-          print('Enhanced session, public browsing, account transactions, admin entry, admin guide/session recovery, wishlist, wallet/payouts, sign-out and gallery present')
+          print('Enhanced public layer integrated; protected admin pages kept independent and share session/auth only')
 
       - name: Commit integration
         shell: bash
@@ -94,5 +96,5 @@ jobs:
             echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Integrate reliable admin session, guide access and logout [skip enhancement injector]'
+          git commit -m 'Integrate protected admin pages without cross-wiring [skip enhancement injector]'
           git push origin HEAD:tonninyira-enhancements
