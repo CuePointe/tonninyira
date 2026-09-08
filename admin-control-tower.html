@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tonninyira Admin Control Tower</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin-session-fix.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Work+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 :root{--ink:#1c1410;--card:#2a1f19;--card2:#33261c;--red:#e23f25;--gold:#f5b400;--green:#4c9a5b;--sand:#f3e8d8;--muted:#9c897a;--line:rgba(243,232,216,.1)}
@@ -13,6 +12,7 @@
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.rail{position:static;display:flex;flex-wrap:wrap;gap:4px}.rail-title,.divider{display:none}.nav{width:auto;white-space:nowrap}.cards{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:650px){.top-in{padding:10px}.session .who{display:none}.layout{padding:9px}.mobile-nav{display:block}.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.head{align-items:flex-start}}
 </style>
+<script src="admin-session-fix.js"></script>
 </head>
 <body>
 <header class="top"><div class="top-in"><div class="brand"><img src="assets/tonninyira-mark.svg" alt="Tonninyira"><div><div class="eyebrow">ADMIN CONTROL TOWER</div><h1 class="display">TONNINYIRA COMMAND CENTRE</h1></div></div><div class="session"><span class="who" id="who">Checking access…</span><a class="top-link" href="admin-user-guide.html">User Guide</a><button class="signout" id="signout" type="button">Sign out</button></div></div></header>
