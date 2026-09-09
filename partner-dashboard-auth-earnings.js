@@ -7,6 +7,9 @@
   const isVendor=location.pathname.toLowerCase().includes('vendor-dashboard');
   const isRider=location.pathname.toLowerCase().includes('rider-dashboard');
   if(!isVendor&&!isRider)return;
+  if(isRider && !document.querySelector('script[data-tn-rider-realtime]')){
+    const s=document.createElement('script');s.src='rider-realtime-alerts.js';s.dataset.tnRiderRealtime='1';document.head.appendChild(s);
+  }
   const session=async()=>{try{return (await c()?.auth?.getSession())?.data?.session||null}catch(_){return null}};
   const phone=v=>{const s=String(v||'').replace(/[\s()-]/g,'');if(/^0\d{9}$/.test(s))return '+256'+s.slice(1);if(/^256\d{9}$/.test(s))return '+'+s;if(/^\+256\d{9}$/.test(s))return s;return null};
   function ui(){const lv=document.getElementById('loginView');if(!lv)return;lv.innerHTML=`<h3>${isVendor?'STALL':'RIDER'} ACCOUNT</h3><div class="card"><p class="helper" style="margin-top:0">Use the same Tonninyira account you use in the main app.</p><label>Phone number</label><input type="tel" id="ptaPhone" placeholder="0772 123 456" inputmode="tel"><button class="btn-primary" id="ptaSend">Send code by SMS</button><div id="ptaMsg" class="error-text hidden"></div></div>`;document.getElementById('ptaSend').onclick=send;}
