@@ -12,30 +12,45 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip enhancement injector]') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout enhancement branch
+      - name: Checkout current branch
         uses: actions/checkout@v4
         with:
-          ref: tonninyira-enhancements
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
-      - name: Inject public browsing, account transactions, admin entry, wallet, gallery, session and wishlist layer
+      - name: Normalize public enhancement layer
         shell: python
         run: |
           from pathlib import Path
 
-          index = Path('index.html')
-          html = index.read_text(encoding='utf-8')
+          marker='</body>'
+          index=Path('index.html')
+          html=index.read_text(encoding='utf-8')
 
-          remove_tags = [
-              '<script src="account-location-enhancements.js"></script>',
-              '<script src="account-role-location-enhancements.js"></script>',
-              '<script src="account-first-flow-fix.js"></script>',
-              '<script src="auth-gate.js"></script>',
+          # Remove legacy/duplicate variants before inserting exactly one copy.
+          script_names=[
+              'account-location-enhancements.js',
+              'account-role-location-enhancements.js',
+              'account-first-flow-fix.js',
+              'auth-gate.js',
+              'enhancements.js',
+              'enhancements-fix.js',
+              'profile-copy-enhancements.js',
+              'guest-access-flow.js',
+              'admin-entrypoint.js',
+              'session-compat.js',
+              'support-session-fix.js',
+              'wishlist-account.js',
+              'partner-wallet-payouts.js',
+              'signout-visible.js',
+              'market-gallery-fix.js',
+              'performance-optimizations.js',
           ]
-          for tag in remove_tags:
-              html = html.replace(tag + '\n', '').replace(tag, '')
+          for name in script_names:
+              html=html.replace(f'<script src="{name}"></script>\n','')
+              html=html.replace(f'<script src="{name}"></script>','')
 
-          tags = [
+          tags=[
               '<script src="enhancements.js"></script>',
               '<script src="enhancements-fix.js"></script>',
               '<script src="profile-copy-enhancements.js"></script>',
@@ -46,55 +61,42 @@ jobs:
               '<script src="wishlist-account.js"></script>',
               '<script src="partner-wallet-payouts.js"></script>',
               '<script src="signout-visible.js"></script>',
-              '<script src="market-gallery-fix.js"></script>',
               '<script src="performance-optimizations.js"></script>',
           ]
-          marker = '</body>'
           if marker not in html:
               raise SystemExit('Could not find </body> in index.html')
-          for tag in tags:
-              if tag not in html:
-                  html = html.replace(marker, f'{tag}\n{marker}', 1)
-          index.write_text(html, encoding='utf-8')
+          html=html.replace(marker,'\n'.join(tags)+'\n'+marker,1)
+          index.write_text(html,encoding='utf-8')
 
-          for page in ('vendor-dashboard.html', 'rider-dashboard.html'):
-              p = Path(page)
-              if not p.exists():
-                  continue
-              h = p.read_text(encoding='utf-8')
-              for tag in ('<script src="partner-dashboard-auth-earnings.js"></script>', '<script src="partner-wallet-payouts.js"></script>', '<script src="signout-visible.js"></script>'):
-                  if tag not in h:
-                      if marker not in h:
-                          raise SystemExit(f'Could not find </body> in {page}')
-                      h = h.replace(marker, f'{tag}\n{marker}', 1)
-              p.write_text(h, encoding='utf-8')
+          for page in ('vendor-dashboard.html','rider-dashboard.html'):
+              p=Path(page)
+              if not p.exists(): continue
+              h=p.read_text(encoding='utf-8')
+              for name in ('partner-dashboard-auth-earnings.js','partner-wallet-payouts.js','signout-visible.js'):
+                  h=h.replace(f'<script src="{name}"></script>\n','').replace(f'<script src="{name}"></script>','')
+              if marker not in h:
+                  raise SystemExit(f'Could not find </body> in {page}')
+              for name in ('partner-dashboard-auth-earnings.js','partner-wallet-payouts.js','signout-visible.js'):
+                  h=h.replace(marker,f'<script src="{name}"></script>\n'+marker,1)
+              p.write_text(h,encoding='utf-8')
 
-          # Protected admin pages use only the shared session layer.
-          # They do not receive UI, navigation, or authorization logic from this injector.
-          for page in ('admin-control-tower.html', 'admin-user-guide.html'):
-              p = Path(page)
-              if not p.exists():
-                  continue
-              h = p.read_text(encoding='utf-8')
-              tag = '<script src="admin-session-fix.js"></script>'
-              for needle in ('<script src="admin-session-fix.js"></script>\n', tag):
-                  h = h.replace(needle, '')
+          for page in ('admin-control-tower.html','admin-user-guide.html'):
+              p=Path(page)
+              if not p.exists(): continue
+              h=p.read_text(encoding='utf-8')
+              tag='<script src="admin-session-fix.js"></script>'
+              h=h.replace(tag+'\n','').replace(tag,'')
               if '</head>' not in h:
                   raise SystemExit(f'Could not find </head> in {page}')
-              h = h.replace('</head>', tag + '\n</head>', 1)
-              p.write_text(h, encoding='utf-8')
+              h=h.replace('</head>',tag+'\n</head>',1)
+              p.write_text(h,encoding='utf-8')
 
-          print('Enhanced public layer integrated; protected admin pages kept independent and share session/auth only')
-
-      - name: Commit integration
+      - name: Commit normalization
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html vendor-dashboard.html rider-dashboard.html admin-control-tower.html admin-user-guide.html
-          if git diff --cached --quiet; then
-            echo 'No changes to commit.'
-            exit 0
-          fi
-          git commit -m 'Integrate protected admin pages without cross-wiring [skip enhancement injector]'
-          git push origin HEAD:tonninyira-enhancements
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Normalize frontend enhancement layer [skip enhancement injector]'
+          git push origin HEAD:${GITHUB_REF_NAME}
