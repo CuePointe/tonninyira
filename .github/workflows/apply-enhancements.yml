@@ -27,6 +27,20 @@ jobs:
           index=Path('index.html')
           html=index.read_text(encoding='utf-8')
 
+          # Performance-critical head connections/preload. Deduplicate first.
+          head_tags=[
+            '<link rel="preconnect" href="https://alxzmjgepftohwpqibmn.supabase.co">',
+            '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
+            '<link rel="preload" as="image" href="assets/market/optimized/1.webp" fetchpriority="high">',
+            '<link rel="manifest" href="./manifest.webmanifest">',
+            '<link rel="apple-touch-icon" href="./apple-touch-icon.png">',
+            '<meta name="theme-color" content="#1f1712">',
+          ]
+          for tag in head_tags:
+              html=html.replace(tag+'\n','').replace(tag,'')
+          for tag in head_tags:
+              html=html.replace('</head>',tag+'\n</head>',1)
+
           # Remove legacy/duplicate variants before inserting exactly one copy.
           script_names=[
               'account-location-enhancements.js',
@@ -98,5 +112,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html vendor-dashboard.html rider-dashboard.html admin-control-tower.html admin-user-guide.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Normalize frontend enhancement layer [skip enhancement injector]'
+          git commit -m 'Normalize frontend performance loading layer [skip enhancement injector]'
           git push origin HEAD:${GITHUB_REF_NAME}
