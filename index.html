@@ -287,6 +287,9 @@
   .rider-card{display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px; padding:14px; width:100%; margin-top:14px;}
   .verify-check svg{width:14px;height:14px; color:var(--green); vertical-align:-2px;}
 </style>
+<link rel="preconnect" href="https://alxzmjgepftohwpqibmn.supabase.co">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="image" href="assets/market/optimized/1.webp" fetchpriority="high">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="theme-color" content="#1f1712">
@@ -1256,19 +1259,19 @@ updateCartUI();
 loadLiveVendors();
 loadLiveRiders();
 </script>
+<script src="account-session-ui.js"></script>
+<script src="flutterwave-payments-v2.js"></script>
+<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 <script src="enhancements.js"></script>
 <script src="enhancements-fix.js"></script>
 <script src="profile-copy-enhancements.js"></script>
 <script src="guest-access-flow.js"></script>
 <script src="admin-entrypoint.js"></script>
+<script src="session-compat.js"></script>
+<script src="support-session-fix.js"></script>
+<script src="wishlist-account.js"></script>
 <script src="partner-wallet-payouts.js"></script>
 <script src="signout-visible.js"></script>
 <script src="performance-optimizations.js"></script>
-<script src="session-compat.js"></script>
-<script src="account-session-ui.js"></script>
-<script src="support-session-fix.js"></script>
-<script src="wishlist-account.js"></script>
-<script src="flutterwave-payments-v2.js"></script>
-<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 </body>
 </html>
